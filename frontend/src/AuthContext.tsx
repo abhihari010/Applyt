@@ -3,6 +3,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useRef,
   ReactNode,
 } from "react";
 import { authApi, User } from "./api";
@@ -16,7 +17,9 @@ interface AuthContextType {
   isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -37,10 +40,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         .catch(() => {
           localStorage.removeItem("app_token");
           setToken(null);
+          setUser(null);
         })
         .finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
+      setUser(null);
     }
   }, [token]);
 
@@ -73,12 +78,4 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
-  return context;
 };
