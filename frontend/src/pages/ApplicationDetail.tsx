@@ -20,10 +20,10 @@ import {
   Download,
 } from "lucide-react";
 import api from "../api";
-import { Nav } from "../components/Nav";
-import { StatusBadge } from "../components/StatusBadge";
-import { PriorityBadge } from "../components/PriorityBadge";
-import { FileUploader } from "../components/FileUploader";
+import Nav from "../components/Nav";
+import StatusBadge from "../components/StatusBadge";
+import PriorityBadge from "../components/PriorityBadge";
+import FileUploader from "../components/FileUploader";
 
 type Tab =
   | "details"
@@ -45,7 +45,7 @@ export default function ApplicationDetail() {
   const { data: application, isLoading } = useQuery({
     queryKey: ["application", id],
     queryFn: async () => {
-      const response = await api.get(`/api/applications/${id}`);
+      const response = await api.get(`/apps/${id}`);
       return response.data;
     },
   });
@@ -54,7 +54,7 @@ export default function ApplicationDetail() {
   const { data: notes = [] } = useQuery({
     queryKey: ["notes", id],
     queryFn: async () => {
-      const response = await api.get(`/api/applications/${id}/notes`);
+      const response = await api.get(`/apps/${id}/notes`);
       return response.data;
     },
     enabled: activeTab === "notes",
@@ -63,7 +63,7 @@ export default function ApplicationDetail() {
   const { data: contacts = [] } = useQuery({
     queryKey: ["contacts", id],
     queryFn: async () => {
-      const response = await api.get(`/api/applications/${id}/contacts`);
+      const response = await api.get(`/apps/${id}/contacts`);
       return response.data;
     },
     enabled: activeTab === "contacts",
@@ -72,7 +72,7 @@ export default function ApplicationDetail() {
   const { data: reminders = [] } = useQuery({
     queryKey: ["reminders", id],
     queryFn: async () => {
-      const response = await api.get(`/api/applications/${id}/reminders`);
+      const response = await api.get(`/apps/${id}/reminders`);
       return response.data;
     },
     enabled: activeTab === "reminders",
@@ -81,7 +81,7 @@ export default function ApplicationDetail() {
   const { data: attachments = [] } = useQuery({
     queryKey: ["attachments", id],
     queryFn: async () => {
-      const response = await api.get(`/api/applications/${id}/attachments`);
+      const response = await api.get(`/apps/${id}/attachments`);
       return response.data;
     },
     enabled: activeTab === "attachments",
@@ -90,7 +90,7 @@ export default function ApplicationDetail() {
   const { data: activities = [] } = useQuery({
     queryKey: ["activities", id],
     queryFn: async () => {
-      const response = await api.get(`/api/applications/${id}/activities`);
+      const response = await api.get(`/apps/${id}/activities`);
       return response.data;
     },
     enabled: activeTab === "activity",
@@ -99,7 +99,7 @@ export default function ApplicationDetail() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      await api.put(`/api/applications/${id}`, data);
+      await api.put(`/apps/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["application", id] });
@@ -111,7 +111,7 @@ export default function ApplicationDetail() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await api.delete(`/api/applications/${id}`);
+      await api.delete(`/apps/${id}`);
     },
     onSuccess: () => {
       navigate("/applications");
@@ -120,11 +120,13 @@ export default function ApplicationDetail() {
 
   const handleEdit = () => {
     setEditForm({
-      companyName: application.companyName,
-      positionTitle: application.positionTitle,
+      company: application.company,
+      role: application.role,
       location: application.location || "",
       jobUrl: application.jobUrl || "",
-      applicationDate: application.applicationDate || "",
+      dateApplied: application.dateApplied 
+        ? new Date(application.dateApplied).toISOString().split('T')[0]
+        : "",
       status: application.status,
       priority: application.priority,
     });
@@ -132,7 +134,13 @@ export default function ApplicationDetail() {
   };
 
   const handleSave = () => {
-    updateMutation.mutate(editForm);
+    const dataToSave = {
+      ...editForm,
+      dateApplied: editForm.dateApplied 
+        ? new Date(editForm.dateApplied).toISOString()
+        : null,
+    };
+    updateMutation.mutate(dataToSave);
   };
 
   const handleDelete = () => {
@@ -185,35 +193,35 @@ export default function ApplicationDetail() {
                   <div className="space-y-4">
                     <input
                       type="text"
-                      value={editForm.positionTitle}
+                      value={editForm.role}
                       onChange={(e) =>
                         setEditForm({
                           ...editForm,
-                          positionTitle: e.target.value,
+                          role: e.target.value,
                         })
                       }
                       className="text-2xl font-bold text-gray-900 border-b-2 border-indigo-500 focus:outline-none w-full"
                     />
                     <input
                       type="text"
-                      value={editForm.companyName}
+                      value={editForm.company}
                       onChange={(e) =>
                         setEditForm({
                           ...editForm,
-                          companyName: e.target.value,
+                          company: e.target.value,
                         })
                       }
-                      className="text-lg text-gray-600 border-b border-gray-300 focus:outline-none w-full"
+                      className="text-lg text-gray-600 border-b border-gray-300 focus:outline-none w-full "
                     />
                   </div>
                 ) : (
                   <>
                     <h1 className="text-2xl font-bold text-gray-900">
-                      {application.positionTitle}
+                      {application.role}
                     </h1>
                     <div className="flex items-center gap-2 mt-2 text-lg text-gray-600">
                       <Building2 className="h-5 w-5" />
-                      <span>{application.companyName}</span>
+                      <span>{application.company}</span>
                     </div>
                   </>
                 )}
@@ -228,7 +236,6 @@ export default function ApplicationDetail() {
                         }
                         className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       >
-                        <option value="WISHLIST">Wishlist</option>
                         <option value="APPLIED">Applied</option>
                         <option value="ONLINE_ASSESSMENT">
                           Online Assessment
@@ -237,8 +244,6 @@ export default function ApplicationDetail() {
                         <option value="OFFER">Offer</option>
                         <option value="REJECTED">Rejected</option>
                         <option value="ACCEPTED">Accepted</option>
-                        <option value="DECLINED">Declined</option>
-                        <option value="GHOSTED">Ghosted</option>
                       </select>
                       <select
                         value={editForm.priority}
@@ -268,14 +273,14 @@ export default function ApplicationDetail() {
                     <button
                       onClick={handleSave}
                       disabled={updateMutation.isPending}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer"
                     >
                       <Save className="h-4 w-4" />
                       Save
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center gap-2"
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center gap-2 cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                       Cancel
@@ -285,7 +290,7 @@ export default function ApplicationDetail() {
                   <>
                     <button
                       onClick={handleEdit}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer"
                     >
                       <Edit className="h-4 w-4" />
                       Edit
@@ -293,7 +298,7 @@ export default function ApplicationDetail() {
                     <button
                       onClick={handleDelete}
                       disabled={deleteMutation.isPending}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
                       Delete
@@ -402,9 +407,12 @@ function DetailsTab({ application, isEditing, editForm, setEditForm }: any) {
               <Calendar className="h-5 w-5 text-gray-400" />
               <input
                 type="date"
-                value={editForm.applicationDate}
+                value={editForm.dateApplied}
                 onChange={(e) =>
-                  setEditForm({ ...editForm, applicationDate: e.target.value })
+                  setEditForm({
+                    ...editForm,
+                    dateApplied: e.target.value,
+                  })
                 }
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
@@ -432,12 +440,12 @@ function DetailsTab({ application, isEditing, editForm, setEditForm }: any) {
               </a>
             </div>
           )}
-          {application.applicationDate && (
+          {application.dateApplied && (
             <div className="flex items-center gap-2 text-gray-700">
               <Calendar className="h-5 w-5 text-gray-400" />
               <span>
                 Applied on{" "}
-                {format(new Date(application.applicationDate), "MMMM d, yyyy")}
+                {format(new Date(application.dateApplied), "MMM d, yyyy")}
               </span>
             </div>
           )}
@@ -459,7 +467,7 @@ function NotesTab({ applicationId, notes }: any) {
 
   const addNoteMutation = useMutation({
     mutationFn: async (content: string) => {
-      await api.post(`/api/applications/${applicationId}/notes`, { content });
+      await api.post(`/apps/${applicationId}/notes`, { content });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes", applicationId] });
@@ -469,7 +477,7 @@ function NotesTab({ applicationId, notes }: any) {
 
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: number) => {
-      await api.delete(`/api/applications/${applicationId}/notes/${noteId}`);
+      await api.delete(`/apps/${applicationId}/notes/${noteId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes", applicationId] });
@@ -536,7 +544,7 @@ function ContactsTab({ applicationId, contacts }: any) {
 
   const addContactMutation = useMutation({
     mutationFn: async (data: any) => {
-      await api.post(`/api/applications/${applicationId}/contacts`, data);
+      await api.post(`/apps/${applicationId}/contacts`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contacts", applicationId] });
@@ -547,9 +555,7 @@ function ContactsTab({ applicationId, contacts }: any) {
 
   const deleteContactMutation = useMutation({
     mutationFn: async (contactId: number) => {
-      await api.delete(
-        `/api/applications/${applicationId}/contacts/${contactId}`
-      );
+      await api.delete(`/apps/${applicationId}/contacts/${contactId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contacts", applicationId] });
@@ -672,7 +678,7 @@ function RemindersTab({ applicationId, reminders }: any) {
 
   const addReminderMutation = useMutation({
     mutationFn: async (data: any) => {
-      await api.post(`/api/applications/${applicationId}/reminders`, data);
+      await api.post(`/apps/${applicationId}/reminders`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reminders", applicationId] });
@@ -683,9 +689,7 @@ function RemindersTab({ applicationId, reminders }: any) {
 
   const deleteReminderMutation = useMutation({
     mutationFn: async (reminderId: number) => {
-      await api.delete(
-        `/api/applications/${applicationId}/reminders/${reminderId}`
-      );
+      await api.delete(`/apps/${applicationId}/reminders/${reminderId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reminders", applicationId] });
@@ -778,9 +782,7 @@ function AttachmentsTab({ applicationId, attachments }: any) {
 
   const deleteAttachmentMutation = useMutation({
     mutationFn: async (attachmentId: number) => {
-      await api.delete(
-        `/api/applications/${applicationId}/attachments/${attachmentId}`
-      );
+      await api.delete(`/apps/${applicationId}/attachments/${attachmentId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -792,7 +794,7 @@ function AttachmentsTab({ applicationId, attachments }: any) {
   const downloadAttachment = async (attachmentId: number, fileName: string) => {
     try {
       const response = await api.get(
-        `/api/applications/${applicationId}/attachments/${attachmentId}/download`
+        `/apps/${applicationId}/attachments/${attachmentId}/download`
       );
       const downloadUrl = response.data.downloadUrl;
       window.open(downloadUrl, "_blank");
@@ -804,7 +806,7 @@ function AttachmentsTab({ applicationId, attachments }: any) {
   return (
     <div className="space-y-4">
       <FileUploader
-        applicationId={Number(applicationId)}
+        applicationId={applicationId}
         onUploadComplete={() =>
           queryClient.invalidateQueries({
             queryKey: ["attachments", applicationId],
@@ -825,7 +827,7 @@ function AttachmentsTab({ applicationId, attachments }: any) {
                   {attachment.fileName}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {(attachment.fileSize / 1024).toFixed(1)} KB ·{" "}
+                  {(attachment.sizeBytes / 1024).toFixed(1)} KB ·{" "}
                   {format(new Date(attachment.uploadedAt), "MMM d, yyyy")}
                 </p>
               </div>
@@ -864,7 +866,7 @@ function ActivityTab({ activities }: any) {
           key={activity.id}
           className="flex gap-3 pb-3 border-b border-gray-200 last:border-0"
         >
-          <div className="flex-shrink-0 w-2 h-2 mt-2 bg-indigo-500 rounded-full" />
+          <div className="shrink-0 w-2 h-2 mt-2 bg-indigo-500 rounded-full" />
           <div className="flex-1">
             <p className="text-gray-700">{activity.activityType}</p>
             {activity.description && (

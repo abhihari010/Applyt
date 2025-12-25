@@ -23,7 +23,7 @@ import {
 } from "recharts";
 import { TrendingUp, TrendingDown, Target, CheckCircle } from "lucide-react";
 import api from "../api";
-import { Nav } from "../components/Nav";
+import Nav from "../components/Nav";
 
 const STATUS_COLORS: Record<string, string> = {
   WISHLIST: "#9CA3AF",
@@ -41,8 +41,8 @@ export default function Analytics() {
   const { data: applications = [], isLoading } = useQuery({
     queryKey: ["applications"],
     queryFn: async () => {
-      const response = await api.get("/api/applications");
-      return response.data;
+      const response = await api.get("/apps");
+      return response.data.content || response.data;
     },
   });
 
@@ -65,7 +65,7 @@ export default function Analytics() {
 
   const statusData = Object.entries(statusCounts).map(([name, value]) => ({
     name: name.replace(/_/g, " "),
-    value,
+    value: value as number,
   }));
 
   // Applications per week (last 12 weeks)
@@ -96,7 +96,7 @@ export default function Analytics() {
 
   const priorityData = Object.entries(priorityCounts).map(([name, value]) => ({
     name,
-    value,
+    value: value as number,
   }));
 
   // Conversion metrics

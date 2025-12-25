@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../api";
 import Nav from "../components/Nav";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 type FormState = {
   company: string;
@@ -10,7 +12,7 @@ type FormState = {
   location?: string;
   jobUrl?: string;
   dateApplied?: string;
-  priority?: "LOW" | "MED" | "HIGH";
+  priority?: "LOW" | "MEDIUM" | "HIGH";
   status?: string;
 };
 
@@ -18,8 +20,8 @@ export default function NewApplication() {
   const [form, setForm] = useState<FormState>({
     company: "",
     role: "",
-    priority: "MED",
-    status: "Saved",
+    priority: "MEDIUM",
+    status: "SAVED",
   });
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -73,30 +75,58 @@ export default function NewApplication() {
               placeholder="Job URL"
               className="w-full p-2 border rounded mb-2"
             />
-            <div className="flex gap-2 mb-2">
-              <select
-                value={form.priority}
-                onChange={(e) =>
-                  setForm({ ...form, priority: e.target.value as any })
-                }
-                className="p-2 border rounded"
-              >
-                <option value="LOW">Low</option>
-                <option value="MED">Med</option>
-                <option value="HIGH">High</option>
-              </select>
-              <select
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-                className="p-2 border rounded"
-              >
-                <option>Saved</option>
-                <option>Applied</option>
-                <option>OA</option>
-                <option>Interview</option>
-                <option>Offer</option>
-                <option>Rejected</option>
-              </select>
+            <div className="grid grid-cols-2 gap-4 mb-2">
+              <div className="flex items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Priority:
+                </label>
+                <select
+                  value={form.priority}
+                  onChange={(e) =>
+                    setForm({ ...form, priority: e.target.value as any })
+                  }
+                  className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="LOW">Low</option>
+                  <option value="MEDIUM">Med</option>
+                  <option value="HIGH">High</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="font-medium text-gray-700 whitespace-nowrap">
+                  Status:
+                </label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="SAVED">Saved</option>
+                  <option value="APPLIED">Applied</option>
+                  <option value="OA">OA</option>
+                  <option value="INTERVIEW">Interview</option>
+                  <option value="OFFER">Offer</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <label className="font-medium text-gray-700 whitespace-nowrap">
+                Date Applied:
+              </label>
+              <DatePicker
+                selected={form.dateApplied ? new Date(form.dateApplied) : null}
+                onChange={(date: Date | null) => {
+                  setForm({
+                    ...form,
+                    dateApplied: date ? date.toISOString() : undefined,
+                  });
+                }}
+                dateFormat="MMM d, yyyy"
+                className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholderText="Select date"
+                wrapperClassName="flex-1"
+              />
             </div>
             <div className="flex items-center gap-2 pt-2">
               <button

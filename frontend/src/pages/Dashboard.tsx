@@ -134,7 +134,7 @@ export default function Dashboard() {
                 View all
               </Link>
             </h2>
-            {appsData && appsData.content.length > 0 ? (
+            {appsData?.content && appsData.content.length > 0 ? (
               <div className="space-y-3">
                 {appsData.content.map((app) => (
                   <Link

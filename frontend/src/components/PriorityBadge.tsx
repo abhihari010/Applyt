@@ -10,7 +10,7 @@ const PRIORITY_STYLES: Record<string, string> = {
   URGENT: "bg-red-100 text-red-700 border-red-300",
 };
 
-export function PriorityBadge({
+export default function PriorityBadge({
   priority,
   className = "",
 }: PriorityBadgeProps) {
