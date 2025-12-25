@@ -3,6 +3,8 @@ package com.apptracker.controller;
 import com.apptracker.dto.*;
 import com.apptracker.service.*;
 import com.apptracker.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,6 +20,8 @@ import java.util.UUID;
 @RequestMapping("/api/apps")
 @CrossOrigin(origins = "*")
 public class ApplicationController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationController.class);
 
     private final ApplicationService applicationService;
     private final NoteService noteService;
@@ -60,7 +64,20 @@ public class ApplicationController {
             @AuthenticationPrincipal UUID userId,
             @RequestBody CreateApplicationRequest request) {
 
+        logger.info("=== CREATE APPLICATION REQUEST ===");
+        logger.info("UserId from @AuthenticationPrincipal: {}", userId);
+        logger.info(
+                "Request body - Company: {}, Role: {}, Priority: {}, Status: {}, Location: {}, JobUrl: {}, DateApplied: {}",
+                request.getCompany(),
+                request.getRole(),
+                request.getPriority(),
+                request.getStatus(),
+                request.getLocation(),
+                request.getJobUrl(),
+                request.getDateApplied());
+
         ApplicationDTO app = applicationService.createApplication(userId, request);
+        logger.info("Application created successfully with ID: {}", app.getId());
         return ResponseEntity.ok(app);
     }
 

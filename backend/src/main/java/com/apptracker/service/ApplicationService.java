@@ -41,6 +41,9 @@ public class ApplicationService {
         if (request.getPriority() != null) {
             app.setPriority(ApplicationEntity.Priority.valueOf(request.getPriority()));
         }
+        if (request.getStatus() != null) {
+            app.setStatus(ApplicationEntity.Status.valueOf(request.getStatus()));
+        }
 
         ApplicationEntity saved = applicationRepository.save(app);
 

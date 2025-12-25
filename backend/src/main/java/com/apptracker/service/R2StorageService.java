@@ -34,7 +34,6 @@ public class R2StorageService {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(objectKey)
-                .contentType(contentType)
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
@@ -99,7 +98,12 @@ public class R2StorageService {
                 contentType.equals("image/png") ||
                 contentType.equals("image/jpeg") ||
                 contentType.equals("image/jpg") ||
-                contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+                contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document") || // .docx
+                contentType.equals("application/msword") || // .doc
+                contentType.equals("text/plain") || // .txt
+                contentType.equals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") || // .xlsx
+                contentType.equals("application/vnd.ms-excel") // .xls
+        );
     }
 
     public static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB

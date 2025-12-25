@@ -8,6 +8,7 @@ public class CreateApplicationRequest {
     private String location;
     private String jobUrl;
     private String priority;
+    private String status;
     private OffsetDateTime dateApplied;
 
     // Getters and Setters
@@ -57,5 +58,13 @@ public class CreateApplicationRequest {
 
     public void setDateApplied(OffsetDateTime dateApplied) {
         this.dateApplied = dateApplied;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

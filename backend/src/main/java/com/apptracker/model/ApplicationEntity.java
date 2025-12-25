@@ -33,6 +33,7 @@ public class ApplicationEntity {
     private String jobUrl;
 
     @Enumerated(EnumType.STRING)
+    @Column
     private Priority priority;
 
     @Column(nullable = false)

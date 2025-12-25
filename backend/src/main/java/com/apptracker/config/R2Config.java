@@ -30,7 +30,7 @@ public class R2Config {
         return S3Client.builder()
                 .endpointOverride(URI.create(endpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .region(Region.US_EAST_1) // R2 doesn't use regions, but SDK requires one
+                .region(Region.US_EAST_1)
                 .build();
     }
 
