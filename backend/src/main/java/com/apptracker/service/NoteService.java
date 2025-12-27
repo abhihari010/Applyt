@@ -1,6 +1,7 @@
 package com.apptracker.service;
 
 import com.apptracker.dto.*;
+import com.apptracker.exception.ResourceNotFoundException;
 import com.apptracker.model.Note;
 import com.apptracker.model.Activity;
 import com.apptracker.repository.NoteRepository;
@@ -51,5 +52,13 @@ public class NoteService {
         // Verify ownership
         applicationService.getApplicationEntityById(userId, appId);
         return noteRepository.findByApplicationIdOrderByCreatedAtDesc(appId);
+    }
+
+    public void deleteNote(UUID userId, UUID appId, UUID noteId) {
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
+        // Verify ownership
+        applicationService.getApplicationEntityById(userId, appId);
+        noteRepository.delete(note);
     }
 }

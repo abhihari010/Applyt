@@ -21,4 +21,9 @@ public interface ReminderRepository extends JpaRepository<Reminder, UUID> {
             "WHERE a.userId = :userId AND r.completed = false AND r.remindAt <= :until " +
             "ORDER BY r.remindAt ASC")
     List<Reminder> findDueRemindersByUser(@Param("userId") UUID userId, @Param("until") OffsetDateTime until);
+
+    @Query("SELECT r FROM Reminder r JOIN ApplicationEntity a ON r.applicationId = a.id " +
+            "WHERE a.userId = :userId AND r.completed = false " +
+            "ORDER BY r.remindAt ASC")
+    List<Reminder> findAllIncompleteRemindersByUser(@Param("userId") UUID userId);
 }

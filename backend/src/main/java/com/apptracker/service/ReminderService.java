@@ -1,6 +1,7 @@
 package com.apptracker.service;
 
 import com.apptracker.dto.*;
+import com.apptracker.exception.ResourceNotFoundException;
 import com.apptracker.model.*;
 import com.apptracker.repository.*;
 import org.springframework.stereotype.Service;
@@ -58,15 +59,30 @@ public class ReminderService {
         return reminderRepository.findDueRemindersByUser(userId, until);
     }
 
+    public List<Reminder> getAllIncompleteReminders(UUID userId) {
+        return reminderRepository.findAllIncompleteRemindersByUser(userId);
+    }
+
     @Transactional
     public Reminder completeReminder(UUID userId, UUID reminderId) {
         Reminder reminder = reminderRepository.findById(reminderId)
-                .orElseThrow(() -> new RuntimeException("Reminder not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Reminder not found"));
 
         // Verify ownership through application
         applicationService.getApplicationEntityById(userId, reminder.getApplicationId());
 
         reminder.setCompleted(true);
         return reminderRepository.save(reminder);
+    }
+
+    @Transactional
+    public void deleteReminder(UUID userId, UUID appId, UUID reminderId) {
+        Reminder reminder = reminderRepository.findById(reminderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reminder not found"));
+
+        // Verify ownership through application
+        applicationService.getApplicationEntityById(userId, appId);
+
+        reminderRepository.delete(reminder);
     }
 }

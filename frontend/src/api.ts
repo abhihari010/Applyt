@@ -158,6 +158,9 @@ export const notesApi = {
 
   create: (appId: string, content: string) =>
     api.post<Note>(`/apps/${appId}/notes`, { content }),
+
+  delete: (appId: string, noteId: string) =>
+    api.delete(`/apps/${appId}/notes/${noteId}`),
 };
 
 // Contacts API
@@ -168,6 +171,9 @@ export const contactsApi = {
     appId: string,
     data: Omit<Contact, "id" | "applicationId" | "createdAt">
   ) => api.post<Contact>(`/apps/${appId}/contacts`, data),
+
+  delete: (appId: string, contactId: string) =>
+    api.delete(`/apps/${appId}/contacts/${contactId}`),
 };
 
 // Reminders API
@@ -179,6 +185,11 @@ export const remindersApi = {
 
   getDue: (days: number = 7) =>
     api.get<Reminder[]>("/reminders/due", { params: { days } }),
+
+  getAll: () => api.get<Reminder[]>("/reminders/all"),
+
+  delete: (appId: string, id: string) =>
+    api.delete(`/apps/${appId}/reminders/${id}`),
 
   complete: (id: string) => api.patch<Reminder>(`/reminders/${id}/complete`),
 };
@@ -211,6 +222,9 @@ export const attachmentsApi = {
     api.get<{ downloadUrl: string }>(
       `/attachments/${attachmentId}/download-url`
     ),
+
+  delete: (appId: string, attachmentId: string) =>
+    api.delete(`/apps/${appId}/attachments/${attachmentId}`),
 };
 
 // Activity API

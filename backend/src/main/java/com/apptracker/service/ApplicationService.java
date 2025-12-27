@@ -1,6 +1,8 @@
 package com.apptracker.service;
 
 import com.apptracker.dto.*;
+import com.apptracker.exception.ResourceNotFoundException;
+import com.apptracker.exception.UnauthorizedException;
 import com.apptracker.model.ApplicationEntity;
 import com.apptracker.model.Activity;
 import com.apptracker.repository.ApplicationRepository;
@@ -91,10 +93,10 @@ public class ApplicationService {
 
     public ApplicationDTO getApplicationById(UUID userId, UUID appId) {
         ApplicationEntity app = applicationRepository.findById(appId)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         if (!app.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("You do not have permission to access this application");
         }
 
         return new ApplicationDTO(app);
@@ -103,10 +105,10 @@ public class ApplicationService {
     @Transactional
     public ApplicationDTO updateApplication(UUID userId, UUID appId, CreateApplicationRequest request) {
         ApplicationEntity app = applicationRepository.findById(appId)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         if (!app.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("You do not have permission to update this application");
         }
 
         app.setCompany(request.getCompany());
@@ -129,10 +131,10 @@ public class ApplicationService {
     @Transactional
     public void deleteApplication(UUID userId, UUID appId) {
         ApplicationEntity app = applicationRepository.findById(appId)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         if (!app.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("You do not have permission to delete this application");
         }
 
         applicationRepository.delete(app);
@@ -141,10 +143,10 @@ public class ApplicationService {
     @Transactional
     public ApplicationDTO updateStatus(UUID userId, UUID appId, String newStatus) {
         ApplicationEntity app = applicationRepository.findById(appId)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         if (!app.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("You do not have permission to update this application");
         }
 
         ApplicationEntity.Status oldStatus = app.getStatus();
@@ -169,10 +171,10 @@ public class ApplicationService {
 
     public ApplicationEntity getApplicationEntityById(UUID userId, UUID appId) {
         ApplicationEntity app = applicationRepository.findById(appId)
-                .orElseThrow(() -> new RuntimeException("Application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         if (!app.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new UnauthorizedException("You do not have permission to access this application");
         }
 
         return app;

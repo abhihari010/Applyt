@@ -33,6 +33,14 @@ public class UtilityController {
         return ResponseEntity.ok(reminders);
     }
 
+    @GetMapping("/reminders/all")
+    public ResponseEntity<List<Reminder>> getAllIncompleteReminders(
+            @AuthenticationPrincipal UUID userId) {
+
+        List<Reminder> reminders = reminderService.getAllIncompleteReminders(userId);
+        return ResponseEntity.ok(reminders);
+    }
+
     @PatchMapping("/reminders/{id}/complete")
     public ResponseEntity<Reminder> completeReminder(
             @AuthenticationPrincipal UUID userId,

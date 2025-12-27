@@ -1,6 +1,8 @@
 package com.apptracker.service;
 
 import com.apptracker.dto.*;
+import com.apptracker.exception.BadRequestException;
+import com.apptracker.exception.ResourceNotFoundException;
 import com.apptracker.model.*;
 import com.apptracker.repository.*;
 import org.springframework.stereotype.Service;
@@ -34,11 +36,11 @@ public class AttachmentService {
 
         // Validate file
         if (!R2StorageService.isAllowedContentType(request.getContentType())) {
-            throw new RuntimeException("File type not allowed");
+            throw new BadRequestException("File type not allowed. Allowed types: PDF, DOC, DOCX, TXT, images");
         }
 
         if (request.getSizeBytes() > R2StorageService.MAX_FILE_SIZE) {
-            throw new RuntimeException("File too large. Max size: 10MB");
+            throw new BadRequestException("File too large. Maximum size is 10MB");
         }
 
         R2StorageService.PresignedUploadUrl presigned = r2StorageService.generatePresignedUploadUrl(
@@ -79,11 +81,20 @@ public class AttachmentService {
 
     public String getDownloadUrl(UUID userId, UUID attachmentId) {
         Attachment attachment = attachmentRepository.findById(attachmentId)
-                .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Attachment not found"));
 
         // Verify ownership
         applicationService.getApplicationEntityById(userId, attachment.getApplicationId());
 
         return r2StorageService.generatePresignedDownloadUrl(attachment.getObjectKey());
+    }
+
+    public void deleteAttachment(UUID userId, UUID appId, UUID attachmentId) {
+        Attachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Attachment not found"));
+
+        // Verify ownership
+        applicationService.getApplicationEntityById(userId, appId);
+        attachmentRepository.delete(attachment);
     }
 }

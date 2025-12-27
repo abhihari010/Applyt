@@ -1,15 +1,32 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
 import Nav from "../components/Nav";
 import { remindersApi, applicationsApi, analyticsApi } from "../api";
-import { Bell, TrendingUp, Clock, CheckCircle } from "lucide-react";
-import { format } from "date-fns";
+import {
+  Bell,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  Trash2,
+  ExternalLink,
+  CheckSquare,
+} from "lucide-react";
+import { format, isPast, isToday, isTomorrow } from "date-fns";
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
   const { data: reminders } = useQuery({
-    queryKey: ["reminders", "due"],
-    queryFn: () => remindersApi.getDue(7).then((res) => res.data),
+    queryKey: ["reminders", "all"],
+    queryFn: () => remindersApi.getAll().then((res) => res.data),
+  });
+
+  const { data: allApps } = useQuery({
+    queryKey: ["applications", "all"],
+    queryFn: () =>
+      applicationsApi.getAll({ page: 0, size: 100 }).then((res) => res.data),
   });
 
   const { data: appsData } = useQuery({
@@ -54,6 +71,82 @@ export default function Dashboard() {
       color: "bg-purple-500",
     },
   ];
+  const deleteMutation = useMutation({
+    mutationFn: ({ appId, id }: { appId: string; id: string }) =>
+      remindersApi.delete(appId, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reminders", "all"] });
+    },
+  });
+
+  const completeMutation = useMutation({
+    mutationFn: ({ appId, id }: { appId: string; id: string }) =>
+      remindersApi.complete(appId, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reminders", "all"] });
+    },
+  });
+
+  const handleDelete = async (
+    appId: string,
+    id: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to delete this reminder?")) {
+      deleteMutation.mutate({ appId, id });
+    }
+  };
+
+  const handleComplete = async (
+    appId: string,
+    id: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    completeMutation.mutate({ appId, id });
+  };
+
+  const getUrgency = (date: string) => {
+    const reminderDate = new Date(date);
+    const now = new Date();
+
+    if (isPast(reminderDate) && reminderDate < now) {
+      return {
+        label: "Overdue",
+        color: "red",
+        bgColor: "bg-red-50",
+        borderColor: "border-red-500",
+      };
+    }
+    if (isToday(reminderDate)) {
+      return {
+        label: "Today",
+        color: "orange",
+        bgColor: "bg-orange-50",
+        borderColor: "border-orange-500",
+      };
+    }
+    if (isTomorrow(reminderDate)) {
+      return {
+        label: "Tomorrow",
+        color: "yellow",
+        bgColor: "bg-yellow-50",
+        borderColor: "border-yellow-500",
+      };
+    }
+    return {
+      label: "Upcoming",
+      color: "purple",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-500",
+    };
+  };
+
+  const getApplicationName = (appId: string) => {
+    const app = allApps?.content?.find((a: any) => a.id === appId);
+    return app ? { company: app.company, role: app.role } : null;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -96,24 +189,80 @@ export default function Dashboard() {
               <Bell className="w-5 h-5 mr-2 text-purple-600" />
               Upcoming Reminders
             </h2>
-            {reminders && reminders.length > 0 ? (
-              <div className="space-y-3">
-                {reminders.slice(0, 5).map((reminder) => (
-                  <div
-                    key={reminder.id}
-                    className="border-l-4 border-purple-500 pl-4 py-2"
-                  >
-                    <p className="text-sm font-medium text-gray-900">
-                      {reminder.message}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {format(
-                        new Date(reminder.remindAt),
-                        "MMM d, yyyy h:mm a"
-                      )}
-                    </p>
-                  </div>
-                ))}
+            {reminders && reminders.filter((r) => !r.completed).length > 0 ? (
+              <div className="space-y-3 max-h-80 overflow-y-auto">
+                {reminders
+                  .filter((r) => !r.completed)
+                  .slice(0, 10)
+                  .map((reminder) => {
+                    const urgency = getUrgency(reminder.remindAt);
+                    const app = getApplicationName(reminder.applicationId);
+                    return (
+                      <div
+                        key={reminder.id}
+                        className={`border-l-4 ${urgency.borderColor} ${urgency.bgColor} rounded-r-lg p-3 cursor-pointer hover:shadow-md transition-shadow`}
+                        onClick={() =>
+                          navigate(`/applications/${reminder.applicationId}`)
+                        }
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span
+                                className={`text-xs font-semibold px-2 py-0.5 rounded-full bg-${urgency.color}-100 text-${urgency.color}-800`}
+                              >
+                                {urgency.label}
+                              </span>
+                              {app && (
+                                <span className="text-xs text-gray-600 font-medium">
+                                  {app.company} - {app.role}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm font-medium text-gray-900 mb-1">
+                              {reminder.message}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {format(
+                                new Date(reminder.remindAt),
+                                "MMM d, yyyy h:mm a"
+                              )}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 ml-2">
+                            <button
+                              onClick={(e) =>
+                                handleComplete(
+                                  reminder.applicationId,
+                                  reminder.id,
+                                  e
+                                )
+                              }
+                              className="p-1.5 text-green-600 hover:bg-green-100 rounded transition-colors cursor-pointer"
+                              title="Mark complete"
+                              disabled={completeMutation.isPending}
+                            >
+                              <CheckSquare className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={(e) =>
+                                handleDelete(
+                                  reminder.applicationId,
+                                  reminder.id,
+                                  e
+                                )
+                              }
+                              className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors cursor-pointer"
+                              title="Delete"
+                              disabled={deleteMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             ) : (
               <p className="text-gray-500 text-sm">No upcoming reminders</p>

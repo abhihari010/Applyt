@@ -142,6 +142,15 @@ public class ApplicationController {
         return ResponseEntity.ok(note);
     }
 
+    @DeleteMapping("/{appId}/notes/{noteId}")
+    public ResponseEntity<Void> deleteNote(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID appId,
+            @PathVariable UUID noteId) {
+        noteService.deleteNote(userId, appId, noteId);
+        return ResponseEntity.noContent().build();
+    }
+
     // Contacts endpoints
     @GetMapping("/{id}/contacts")
     public ResponseEntity<List<Contact>> getContacts(
@@ -162,6 +171,15 @@ public class ApplicationController {
         return ResponseEntity.ok(contact);
     }
 
+    @DeleteMapping("/{appId}/contacts/{contactId}")
+    public ResponseEntity<Void> deleteContact(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID appId,
+            @PathVariable UUID contactId) {
+        contactService.deleteContact(userId, appId, contactId);
+        return ResponseEntity.noContent().build();
+    }
+
     // Reminders endpoints
     @GetMapping("/{id}/reminders")
     public ResponseEntity<List<Reminder>> getReminders(
@@ -180,6 +198,15 @@ public class ApplicationController {
 
         Reminder reminder = reminderService.createReminder(userId, id, request);
         return ResponseEntity.ok(reminder);
+    }
+
+    @DeleteMapping("/{appId}/reminders/{reminderId}")
+    public ResponseEntity<Void> deleteReminder(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID appId,
+            @PathVariable UUID reminderId) {
+        reminderService.deleteReminder(userId, appId, reminderId);
+        return ResponseEntity.noContent().build();
     }
 
     // Attachments endpoints
@@ -210,6 +237,15 @@ public class ApplicationController {
 
         Attachment attachment = attachmentService.confirmAttachment(userId, id, request);
         return ResponseEntity.ok(attachment);
+    }
+
+    @DeleteMapping("/{appId}/attachments/{attachmentId}")
+    public ResponseEntity<Void> deleteAttachment(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID appId,
+            @PathVariable UUID attachmentId) {
+        attachmentService.deleteAttachment(userId, appId, attachmentId);
+        return ResponseEntity.noContent().build();
     }
 
     // Activity endpoints

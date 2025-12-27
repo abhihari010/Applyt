@@ -93,6 +93,12 @@
             <artifactId>jsoup</artifactId>
             <version>1.21.2</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.googlecode.libphonenumber/libphonenumber -->
+        <dependency>
+            <groupId>com.googlecode.libphonenumber</groupId>
+            <artifactId>libphonenumber</artifactId>
+            <version>9.0.21</version>
+        </dependency>
     </dependencies>
 
     <build>
