@@ -81,7 +81,7 @@ export default function Dashboard() {
 
   const completeMutation = useMutation({
     mutationFn: ({ appId, id }: { appId: string; id: string }) =>
-      remindersApi.complete(appId, id),
+      remindersApi.complete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reminders", "all"] });
     },
