@@ -1,12 +1,18 @@
--- Full schema for Job Application Tracker
+-- AppTracker Database Schema - Complete Initial Setup
+-- This single file consolidates all database tables and their structure
 
--- Users table
+-- Users table with all preference columns
 CREATE TABLE users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   email text UNIQUE NOT NULL,
   password_hash text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT NOW()
+  email_notifications boolean NOT NULL DEFAULT true,
+  auto_archive_old_apps boolean NOT NULL DEFAULT false,
+  show_archived_apps boolean NOT NULL DEFAULT false,
+  email_verified boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT NOW(),
+  updated_at timestamptz NOT NULL DEFAULT NOW()
 );
 
 -- Applications table
@@ -89,3 +95,17 @@ CREATE TABLE activity (
 
 CREATE INDEX idx_activity_application_id ON activity(application_id);
 CREATE INDEX idx_activity_created_at ON activity(created_at);
+
+-- Password reset tokens table
+CREATE TABLE password_reset_tokens (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token text UNIQUE NOT NULL,
+  expires_at timestamptz NOT NULL,
+  used boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
+CREATE INDEX idx_password_reset_tokens_token ON password_reset_tokens(token);
+CREATE INDEX idx_password_reset_tokens_expires_at ON password_reset_tokens(expires_at);

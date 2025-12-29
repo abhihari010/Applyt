@@ -47,3 +47,6 @@ r2:
   secret-access-key: ${R2_SECRET_ACCESS_KEY}
   bucket: ${R2_BUCKET}
   endpoint: ${R2_ENDPOINT}
+
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}

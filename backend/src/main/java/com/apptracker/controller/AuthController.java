@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,8 +30,8 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder pwEncoder = new BCryptPasswordEncoder();
 
-    public AuthController(UserRepository userRepo, AttachmentRepository attachmentRepo, 
-                         R2StorageService r2StorageService, JwtUtil jwtUtil) {
+    public AuthController(UserRepository userRepo, AttachmentRepository attachmentRepo,
+            R2StorageService r2StorageService, JwtUtil jwtUtil) {
         this.userRepo = userRepo;
         this.attachmentRepo = attachmentRepo;
         this.r2StorageService = r2StorageService;
@@ -99,6 +100,7 @@ public class AuthController {
 
         user.setName(req.getName());
         user.setEmail(req.getEmail());
+        user.setUpdatedAt(OffsetDateTime.now());
         User updatedUser = userRepo.save(user);
 
         UserDTO userDTO = new UserDTO(updatedUser.getId(), updatedUser.getName(), updatedUser.getEmail(),
@@ -123,6 +125,7 @@ public class AuthController {
         }
 
         user.setPasswordHash(pwEncoder.encode(req.getNewPassword()));
+        user.setUpdatedAt(OffsetDateTime.now());
         userRepo.save(user);
 
         return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
@@ -144,6 +147,7 @@ public class AuthController {
             user.setShowArchivedApps(req.getShowArchivedApps());
         }
 
+        user.setUpdatedAt(OffsetDateTime.now());
         User updatedUser = userRepo.save(user);
         UserDTO userDTO = new UserDTO(updatedUser.getId(), updatedUser.getName(), updatedUser.getEmail(),
                 updatedUser.isEmailNotifications(), updatedUser.isAutoArchiveOldApps(),
@@ -160,7 +164,7 @@ public class AuthController {
 
         // Get all attachments for this user's applications
         List<Attachment> attachments = attachmentRepo.findAllByUserId(userId);
-        
+
         // Delete all files from R2
         for (Attachment attachment : attachments) {
             try {
@@ -170,10 +174,10 @@ public class AuthController {
                 System.err.println("Failed to delete R2 object: " + attachment.getObjectKey() + " - " + e.getMessage());
             }
         }
-        
+
         // Delete user (cascades will handle database cleanup)
         userRepo.deleteById(userId);
-        
+
         return ResponseEntity.ok(Map.of("message", "Account deleted successfully"));
     }
 }

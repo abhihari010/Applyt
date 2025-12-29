@@ -138,6 +138,15 @@ export const authApi = {
   }) => api.put<User>("/auth/preferences", data),
 
   deleteAccount: () => api.delete("/auth/account"),
+
+  forgotPassword: (data: { email: string }) =>
+    api.post("/forgot-password/request", data),
+
+  validateForgotPassword: (token: string) =>
+    api.get(`/forgot-password/validate/${token}`),
+
+  resetPassword: (data: { token: string | null; newPassword: string }) =>
+    api.post("/forgot-password/reset", data),
 };
 
 // Applications API
