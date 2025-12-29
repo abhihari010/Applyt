@@ -30,6 +30,7 @@ public class Activity {
         NOTE_ADDED,
         CONTACT_ADDED,
         FILE_UPLOADED,
+        FILE_DELETED,
         REMINDER_ADDED,
         UPDATED
     }

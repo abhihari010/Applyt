@@ -95,6 +95,18 @@ public class AttachmentService {
 
         // Verify ownership
         applicationService.getApplicationEntityById(userId, appId);
+        
+        // Delete from R2 first
+        r2StorageService.deleteObject(attachment.getObjectKey());
+        
+        // Then delete from database
         attachmentRepository.delete(attachment);
+
+        // Log activity
+        Activity activity = new Activity();
+        activity.setApplicationId(appId);
+        activity.setType(Activity.ActivityType.FILE_DELETED);
+        activity.setMessage("File deleted: " + attachment.getFileName());
+        activityRepository.save(activity);
     }
 }

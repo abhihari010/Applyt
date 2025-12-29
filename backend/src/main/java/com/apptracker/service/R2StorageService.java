@@ -2,6 +2,8 @@ package com.apptracker.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -17,12 +19,14 @@ import java.util.UUID;
 public class R2StorageService {
 
     private final S3Presigner s3Presigner;
+    private final S3Client s3Client;
 
     @Value("${r2.bucket}")
     private String bucket;
 
-    public R2StorageService(S3Presigner s3Presigner) {
+    public R2StorageService(S3Presigner s3Presigner, S3Client s3Client) {
         this.s3Presigner = s3Presigner;
+        this.s3Client = s3Client;
     }
 
     public PresignedUploadUrl generatePresignedUploadUrl(UUID userId, UUID appId, String fileName, String contentType) {
@@ -63,6 +67,15 @@ public class R2StorageService {
         PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
 
         return presignedRequest.url().toString();
+    }
+
+    public void deleteObject(String objectKey) {
+        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(objectKey)
+                .build();
+
+        s3Client.deleteObject(deleteObjectRequest);
     }
 
     private String sanitizeFileName(String fileName) {
