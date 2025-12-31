@@ -14,6 +14,7 @@ import Analytics from "./pages/Analytics";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import RequireAuth from "./RequireAuth";
 import Settings from "./pages/Settings";
+import OpenJobs from "./pages/OpenJobs";
 
 export default function App() {
   return (
@@ -86,6 +87,14 @@ export default function App() {
             element={
               <RequireAuth>
                 <Settings />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/open-jobs"
+            element={
+              <RequireAuth>
+                <OpenJobs />
               </RequireAuth>
             }
           />

@@ -61,6 +61,13 @@ export interface Application {
   updatedAt: string;
 }
 
+export interface OpenJob {
+  company: string;
+  role: string;
+  location: string;
+  datePosted: string;
+  jobUrl: string;
+}
 export interface Note {
   id: string;
   applicationId: string;
@@ -266,6 +273,14 @@ export const activityApi = {
 // Analytics API
 export const analyticsApi = {
   get: () => api.get<Analytics>("/analytics"),
+};
+
+// Jobs API
+export const jobsApi = {
+  getOpenInternships: (page: number = 0, size: number = 20) =>
+    api.get("/jobs/open-internships", {
+      params: { page, size },
+    }),
 };
 
 export default api;

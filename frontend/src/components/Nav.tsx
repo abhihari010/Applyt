@@ -24,6 +24,7 @@ export default function Nav() {
     { to: "/applications", label: "Applications", icon: FileText },
     { to: "/board", label: "Board", icon: Trello },
     { to: "/analytics", label: "Analytics", icon: BarChart3 },
+    { to: "/open-jobs", label: "Open Jobs", icon: BarChart3 },
   ];
 
   // Don't render nav if user is not logged in

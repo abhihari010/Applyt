@@ -25,55 +25,58 @@ import java.util.Collections;
 @Configuration
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
-    private final OAuth2SuccessHandler oauth2SuccessHandler;
-    private final OAuth2Service oauth2Service;
+        private final JwtAuthFilter jwtAuthFilter;
+        private final OAuth2SuccessHandler oauth2SuccessHandler;
+        private final OAuth2Service oauth2Service;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, OAuth2SuccessHandler oauth2SuccessHandler,
-            OAuth2Service oauth2Service) {
-        this.jwtAuthFilter = jwtAuthFilter;
-        this.oauth2SuccessHandler = oauth2SuccessHandler;
-        this.oauth2Service = oauth2Service;
-    }
+        public SecurityConfig(JwtAuthFilter jwtAuthFilter, OAuth2SuccessHandler oauth2SuccessHandler,
+                        OAuth2Service oauth2Service) {
+                this.jwtAuthFilter = jwtAuthFilter;
+                this.oauth2SuccessHandler = oauth2SuccessHandler;
+                this.oauth2Service = oauth2Service;
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults()) // enable CORS properly
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/actuator/**",
-                                "/api/forgot-password/**", "/oauth2/**", "/login/oauth2/**")
-                        .permitAll()
-                        .anyRequest().authenticated())
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(oauth2Service))
-                        .successHandler(oauth2SuccessHandler))
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .cors(Customizer.withDefaults()) // enable CORS properly
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
+                                                .requestMatchers("/api/auth/login", "/api/auth/register",
+                                                                "/actuator/**",
+                                                                "/api/forgot-password/**", "/oauth2/**",
+                                                                "/login/oauth2/**", "/api/jobs/**")
+                                                .permitAll()
+                                                .anyRequest().authenticated())
+                                .oauth2Login(oauth2 -> oauth2
+                                                .userInfoEndpoint(userInfo -> userInfo
+                                                                .userService(oauth2Service))
+                                                .successHandler(oauth2SuccessHandler))
+                                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        // Allow the frontend dev server origin. Add more origins for other environments
-        // as needed.
-        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Collections.singletonList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Location"));
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
+                // Allow the frontend dev server origin. Add more origins for other environments
+                // as needed.
+                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(Collections.singletonList("*"));
+                configuration.setExposedHeaders(Arrays.asList("Authorization", "Location"));
+                configuration.setAllowCredentials(true);
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+                return authConfig.getAuthenticationManager();
+        }
 }
