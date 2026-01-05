@@ -46,6 +46,8 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
                                                 .requestMatchers("/api/auth/login", "/api/auth/register",
+                                                                "/api/auth/verify-email",
+                                                                "/api/auth/resend-verification-email",
                                                                 "/actuator/**",
                                                                 "/api/forgot-password/**", "/oauth2/**",
                                                                 "/login/oauth2/**", "/api/jobs/**")

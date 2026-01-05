@@ -1,14 +1,26 @@
 package com.apptracker.dto;
 
+import jakarta.validation.constraints.*;
 import java.time.OffsetDateTime;
 
 public class CreateApplicationRequest {
+    @NotBlank(message = "Company name is required")
     private String company;
+
+    @NotBlank(message = "Job role is required")
     private String role;
+
     private String location;
+
+    @URL(message = "Job URL must be a valid URL")
     private String jobUrl;
+
+    @Pattern(regexp = "URGENT|HIGH|MEDIUM|LOW", message = "Priority must be one of: URGENT, HIGH, MEDIUM, LOW")
     private String priority;
+
+    @Pattern(regexp = "APPLIED|INTERVIEWING|OFFER|REJECTED|ACCEPTED|WITHDRAWN", message = "Invalid status")
     private String status;
+
     private OffsetDateTime dateApplied;
 
     // Getters and Setters

@@ -2,12 +2,10 @@ package com.apptracker.controller;
 
 import com.apptracker.dto.OpenJob;
 import com.apptracker.service.ScheduledTaskService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.apptracker.util.AppLogger;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +25,6 @@ import java.util.Map;
 @RequestMapping("/api/jobs")
 public class JobBrowseController {
 
-    private static final Logger logger = LoggerFactory.getLogger(JobBrowseController.class);
     private final ScheduledTaskService scheduledTaskService;
 
     public JobBrowseController(ScheduledTaskService scheduledTaskService) {
@@ -55,7 +52,7 @@ public class JobBrowseController {
 
         // Return empty page if start index is beyond the list
         if (start >= allJobs.size()) {
-            return ResponseEntity.ok(new PageImpl<>(List.of(), PageRequest.of(page, size), allJobs.size()));
+            return ResponseEntity.ok(new PageImpl<>(List.of(), PageRequest.of(page, size), 0));
         }
 
         // Get the sublist for this page
@@ -86,7 +83,7 @@ public class JobBrowseController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            logger.error("Error refreshing cache", e);
+            AppLogger.error("Error refreshing cache", e);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);

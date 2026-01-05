@@ -1,10 +1,19 @@
 package com.apptracker.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Email;
+
 public class CreateContactRequest {
+    @NotBlank(message = "Contact name is required")
     private String name;
+
+    @Email(message = "Email must be valid")
     private String email;
+
     private String linkedinUrl;
+
     private String phone;
+
     private String notes;
 
     // Getters and Setters

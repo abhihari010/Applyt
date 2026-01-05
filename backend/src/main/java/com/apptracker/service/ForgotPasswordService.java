@@ -1,7 +1,5 @@
 package com.apptracker.service;
 
-import com.apptracker.dto.ForgotPasswordRequest;
-import com.apptracker.dto.ResetPasswordRequest;
 import com.apptracker.exception.BadRequestException;
 import com.apptracker.exception.ResourceNotFoundException;
 import com.apptracker.model.PasswordResetToken;
