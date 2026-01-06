@@ -10,22 +10,18 @@ export default function OAuth2Redirect() {
 
   useEffect(() => {
     const token = searchParams.get("token");
-    console.log("OAuth2Redirect: token =", token);
 
     if (token) {
       // Store token and redirect to dashboard
       oauthLogin(token)
         .then(() => {
-          console.log("OAuth2 login successful");
           navigate("/dashboard");
         })
-        .catch((error) => {
-          console.error("OAuth2 login failed:", error);
+        .catch(() => {
           navigate("/login?error=oauth_failed");
         });
     } else {
       // OAuth2 failed, redirect to login with error
-      console.log("OAuth2Redirect: no token found");
       navigate("/login?error=oauth_failed");
     }
   }, [searchParams, navigate, oauthLogin]);

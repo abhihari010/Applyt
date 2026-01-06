@@ -41,28 +41,23 @@ public class OAuth2Service extends DefaultOAuth2UserService {
         String name = oauth2User.getAttribute("name");
         String provider = userRequest.getClientRegistration().getRegistrationId();
 
-        logger.info("OAuth2 login attempt - Provider: {}, Email: {}, Name: {}", provider, email, name);
-        logger.debug("OAuth2User attributes: {}", oauth2User.getAttributes());
+        logger.info("OAuth2 login attempt - Provider: {}", provider);
 
         // Extract the actual provider-specific user ID
         String providerId = extractProviderId(oauth2User, provider);
-        logger.info("Extracted provider ID: {}", providerId);
 
         // If GitHub, email might be private - use login@users.noreply.github.com format
         if ("github".equals(provider) && email == null) {
             String login = oauth2User.getAttribute("login");
             email = login + "@users.noreply.github.com";
-            logger.info("GitHub user has private email. Using fallback: {}", email);
         }
 
         // Use login as name fallback for GitHub
         if ("github".equals(provider) && name == null) {
             name = oauth2User.getAttribute("login");
-            logger.info("GitHub user has no name. Using login as name: {}", name);
         }
 
         // Find or create user (stored in database for later use)
-        logger.info("Finding or creating user with email: {}", email);
         findOrCreateUser(email, name, provider, providerId);
 
         // Return OAuth2User (Spring Security will use this for authentication)
