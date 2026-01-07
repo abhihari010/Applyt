@@ -197,14 +197,23 @@ export default function Homepage() {
             </p>
           </div>
           <div className="text-center border-t pt-8">
-            <p className="text-sm text-gray-500">
-              <Link
-                to="/privacy-policy"
-                className="text-blue-600 hover:text-blue-700 font-semibold"
-              >
-                Privacy Policy
-              </Link>
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500">
+                <Link
+                  to="/privacy-policy"
+                  className="text-blue-600 hover:text-blue-700 font-semibold"
+                >
+                  Privacy Policy
+                </Link>
+                {" | "}
+                <Link
+                  to="/terms-of-service"
+                  className="text-blue-600 hover:text-blue-700 font-semibold"
+                >
+                  Terms of Service
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
