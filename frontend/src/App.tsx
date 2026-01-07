@@ -17,12 +17,18 @@ import Settings from "./pages/Settings";
 import OpenJobs from "./pages/OpenJobs";
 import ImportApplications from "./pages/ImportApplications";
 import VerifyEmail from "./pages/VerifyEmail";
+import Homepage from "./pages/Homepage";
+import Features from "./pages/Features";
+import About from "./pages/About";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Homepage />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

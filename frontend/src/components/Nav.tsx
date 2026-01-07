@@ -35,9 +35,94 @@ export default function Nav() {
     { to: "/open-jobs", label: "Open Jobs", icon: Briefcase },
   ];
 
-  // Don't render nav if user is not logged in
+  // Public navbar for unauthenticated users
   if (!user) {
-    return null;
+    const publicNavItems = [
+      { to: "/", label: "Home" },
+      { to: "/features", label: "Features" },
+      { to: "/about", label: "About" },
+      { to: "/login", label: "Login" },
+    ];
+
+    return (
+      <nav className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <div className="shrink-0 flex items-center">
+                <Link to="/" className="text-2xl font-bold text-blue-600">
+                  AppTracker
+                </Link>
+              </div>
+              {/* Desktop Navigation */}
+              <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
+                {publicNavItems.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop Right Side - Sign Up Button */}
+            <div className="hidden sm:flex items-center space-x-4">
+              <Link
+                to="/signup"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Get Started
+              </Link>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="flex items-center sm:hidden">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              >
+                <span className="sr-only">Open main menu</span>
+                {mobileMenuOpen ? (
+                  <X className="block h-6 w-6" />
+                ) : (
+                  <Menu className="block h-6 w-6" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile menu */}
+          {mobileMenuOpen && (
+            <div className="sm:hidden">
+              <div className="pt-2 pb-3 space-y-1 border-t">
+                {publicNavItems.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    onClick={handleNavClick}
+                    className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-md"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+              <div className="pt-4 pb-3 border-t border-gray-200">
+                <Link
+                  to="/signup"
+                  onClick={handleNavClick}
+                  className="block px-4 py-3 text-base font-medium text-blue-600 hover:bg-blue-50 transition-colors rounded-md"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+    );
   }
 
   return (
