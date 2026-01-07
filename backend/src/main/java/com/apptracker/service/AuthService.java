@@ -222,40 +222,29 @@ public class AuthService {
      * Verify email using token
      */
     public void verifyEmail(String token) {
-        AppLogger.info("verifyEmail called with token: " + token);
         EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByToken(token);
         if (verificationToken == null) {
-            AppLogger.error("Token not found in database: " + token);
             throw new IllegalArgumentException("Invalid verification token");
         }
 
-        AppLogger.info("Token found. User ID: " + verificationToken.getUserId() + ", Expires at: "
-                + verificationToken.getExpiresAt());
-
         // Check if token has expired
         if (OffsetDateTime.now().isAfter(verificationToken.getExpiresAt())) {
-            AppLogger.error("Token has expired: " + token);
             emailVerificationTokenRepository.delete(verificationToken);
             throw new IllegalArgumentException("Verification token has expired");
         }
 
         User user = userRepo.findById(verificationToken.getUserId())
                 .orElseThrow(() -> {
-                    AppLogger.error("User not found for ID: " + verificationToken.getUserId());
                     return new RuntimeException("User not found");
                 });
-
-        AppLogger.info("User found: " + user.getEmail() + ", currently verified: " + user.isEmailVerified());
 
         user.setEmailVerified(true);
         user.setUpdatedAt(OffsetDateTime.now());
         userRepo.save(user);
-        AppLogger.info("User email verified and updated: " + user.getEmail() + " " + user.isEmailVerified());
 
         // Mark token as verified for audit trail
         verificationToken.setVerifiedAt(OffsetDateTime.now());
         emailVerificationTokenRepository.save(verificationToken);
-        AppLogger.info("Verification token marked as verified");
 
     }
 
@@ -302,9 +291,7 @@ public class AuthService {
      * Helper method to send verification email
      */
     private void sendVerificationEmail(String email, String token) {
-        String verificationUrl = System.getenv("FRONTEND_URL") != null
-                ? System.getenv("FRONTEND_URL") + "/verify-email?token=" + token
-                : "http://localhost:3000/verify-email?token=" + token;
+        String verificationUrl = System.getenv("FRONTEND_URL") + "/verify-email?token=" + token;
 
         emailService.sendEmail(
                 email,

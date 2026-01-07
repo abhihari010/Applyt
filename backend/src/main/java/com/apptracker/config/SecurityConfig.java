@@ -64,10 +64,12 @@ public class SecurityConfig {
 
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
+                String frontendUrl = System.getenv("FRONTEND_URL");
                 CorsConfiguration configuration = new CorsConfiguration();
                 // Allow the frontend dev server origin. Add more origins for other environments
                 // as needed.
-                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                configuration.setAllowedOrigins(
+                                Arrays.asList("http://localhost:3000", frontendUrl));
                 configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(Collections.singletonList("*"));
                 configuration.setExposedHeaders(Arrays.asList("Authorization", "Location"));

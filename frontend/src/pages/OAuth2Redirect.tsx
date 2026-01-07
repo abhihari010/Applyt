@@ -14,8 +14,12 @@ export default function OAuth2Redirect() {
     if (token) {
       // Store token and redirect to dashboard
       oauthLogin(token)
-        .then(() => navigate("/dashboard"))
-        .catch(() => navigate("/login?error=oauth_failed"));
+        .then(() => {
+          navigate("/dashboard");
+        })
+        .catch(() => {
+          navigate("/login?error=oauth_failed");
+        });
     } else {
       // OAuth2 failed, redirect to login with error
       navigate("/login?error=oauth_failed");

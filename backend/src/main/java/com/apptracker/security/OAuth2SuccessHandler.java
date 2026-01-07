@@ -40,10 +40,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             Authentication authentication) throws IOException, ServletException {
 
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-        final String[] email = {oauth2User.getAttribute("email")};
-
-        logger.info("OAuth2 authentication success. Email: {}", email[0]);
-        logger.debug("OAuth2User attributes in success handler: {}", oauth2User.getAttributes());
+        final String[] email = { oauth2User.getAttribute("email") };
 
         // Get provider info from the authentication request
         String provider = request.getParameter("provider");
@@ -57,13 +54,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 provider = "github";
             }
         }
-        logger.info("OAuth2 provider: {}", provider);
 
         // Apply same fallback logic as OAuth2Service for GitHub private emails
         if ("github".equals(provider) && email[0] == null) {
             String login = oauth2User.getAttribute("login");
             email[0] = login + "@users.noreply.github.com";
-            logger.info("GitHub user has private email. Using fallback email: {}", email[0]);
         }
 
         // Find user in database by email
@@ -73,11 +68,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     return new RuntimeException("User not found after OAuth2 login. Email: " + email[0]);
                 });
 
-        logger.info("Found user: {} ({})", user.getName(), user.getId());
-
         // Generate JWT token
         String token = jwtUtil.generateToken(user.getId());
-        logger.info("Generated JWT token for user: {}", user.getId());
 
         // Redirect to frontend with token
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/redirect")
@@ -85,7 +77,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .build()
                 .toUriString();
 
-        logger.info("Redirecting to: {}", redirectUrl);
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
