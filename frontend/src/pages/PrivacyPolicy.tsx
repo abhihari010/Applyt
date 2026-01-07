@@ -358,6 +358,19 @@ export default function PrivacyPolicy() {
                 information in Section 11.
               </p>
             </section>
+
+            {/* Legal Attribution */}
+            <section className="border-t pt-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                13. Legal Attribution
+              </h2>
+              <p className="text-sm text-gray-600 mb-2">
+                Google is a trademark of Google LLC.
+              </p>
+              <p className="text-sm text-gray-600">
+                GitHub is a trademark of GitHub, Inc.
+              </p>
+            </section>
           </div>
         </div>
       </div>
