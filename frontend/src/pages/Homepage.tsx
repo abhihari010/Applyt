@@ -176,24 +176,36 @@ export default function Homepage() {
 
       {/* Footer CTA */}
       <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 border-t">
-        <div className="max-w-7xl mx-auto text-center">
-          <p className="text-gray-600 mb-4">
-            Have questions? Check out our{" "}
-            <Link
-              to="/about"
-              className="text-blue-600 hover:text-blue-700 font-semibold"
-            >
-              About
-            </Link>{" "}
-            and{" "}
-            <Link
-              to="/features"
-              className="text-blue-600 hover:text-blue-700 font-semibold"
-            >
-              Features
-            </Link>{" "}
-            pages
-          </p>
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8">
+            <p className="text-gray-600 mb-4">
+              Have questions? Check out our{" "}
+              <Link
+                to="/about"
+                className="text-blue-600 hover:text-blue-700 font-semibold"
+              >
+                About
+              </Link>{" "}
+              and{" "}
+              <Link
+                to="/features"
+                className="text-blue-600 hover:text-blue-700 font-semibold"
+              >
+                Features
+              </Link>{" "}
+              pages
+            </p>
+          </div>
+          <div className="text-center border-t pt-8">
+            <p className="text-sm text-gray-500">
+              <Link
+                to="/privacy-policy"
+                className="text-blue-600 hover:text-blue-700 font-semibold"
+              >
+                Privacy Policy
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
