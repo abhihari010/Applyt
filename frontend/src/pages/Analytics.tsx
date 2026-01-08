@@ -60,7 +60,9 @@ export default function Analytics() {
 
   // Status distribution
   const statusCounts = apps.reduce((acc: any, app: any) => {
-    acc[app.status] = (acc[app.status] || 0) + 1;
+    if (app && app.status) {
+      acc[app.status] = (acc[app.status] || 0) + 1;
+    }
     return acc;
   }, {});
 
@@ -68,6 +70,9 @@ export default function Analytics() {
     name: name.replace(/_/g, " "),
     value: value as number,
   }));
+
+  // Ensure statusData is an array and has data
+  const safeStatusData = Array.isArray(statusData) ? statusData : [];
 
   // Applications per week (last 12 weeks)
   const twelveWeeksAgo = subWeeks(new Date(), 12);
@@ -247,7 +252,7 @@ export default function Analytics() {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={statusData}
+                    data={safeStatusData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -258,7 +263,7 @@ export default function Analytics() {
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {statusData.map((entry, index) => (
+                    {safeStatusData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={STATUS_COLORS[entry.name] || "#9CA3AF"}
@@ -293,7 +298,7 @@ export default function Analytics() {
                 Status Breakdown
               </h2>
               <div className="space-y-3">
-                {statusData.map((item) => (
+                {safeStatusData.map((item) => (
                   <div
                     key={item.name}
                     className="flex items-center justify-between"

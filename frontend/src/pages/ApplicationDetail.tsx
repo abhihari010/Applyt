@@ -90,7 +90,7 @@ export default function ApplicationDetail() {
   const { data: activities = [] } = useQuery({
     queryKey: ["activities", id],
     queryFn: async () => {
-      const response = await api.get(`/apps/${id}/activities`);
+      const response = await api.get(`/apps/${id}/activity`);
       return response.data;
     },
     enabled: activeTab === "activity",
@@ -352,7 +352,9 @@ export default function ApplicationDetail() {
                 <AttachmentsTab applicationId={id!} attachments={attachments} />
               )}
               {activeTab === "activity" && (
-                <ActivityTab activities={activities} />
+                <ActivityTab
+                  activities={Array.isArray(activities) ? activities : []}
+                />
               )}
             </div>
           </div>

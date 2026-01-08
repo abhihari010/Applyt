@@ -1,13 +1,14 @@
 import { format } from "date-fns";
+import { Activity } from "src/api";
 
 interface ActivityTabProps {
-  activities: any[];
+  activities: Activity[];
 }
 
 export default function ActivityTab({ activities }: ActivityTabProps) {
   return (
     <div className="space-y-3">
-      {activities.map((activity: any) => (
+      {activities.map((activity: Activity) => (
         <div
           key={activity.id}
           className="flex gap-3 pb-3 border-b border-gray-200 last:border-0"

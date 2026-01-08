@@ -108,8 +108,8 @@ export interface Attachment {
 export interface Activity {
   id: string;
   applicationId: string;
-  type: string;
-  message: string;
+  activityType: string;
+  description: string;
   createdAt: string;
 }
 
