@@ -59,8 +59,8 @@ export default function Homepage() {
                 </h1>
                 <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
                   Stop juggling spreadsheets. Track applications, manage
-                  interviews, and land your dream job with AppTracker –
-                  completely free.
+                  interviews, and land your dream job with Applyt – completely
+                  free.
                 </p>
                 <div className="mt-10 flex justify-center gap-4">
                   <Link
@@ -108,13 +108,13 @@ export default function Homepage() {
                 email follow-ups, and deadlines – it's easy to lose track.
               </p>
               <p className="text-gray-600 text-lg">
-                AppTracker is designed to give you complete visibility and
-                control over your entire job search journey.
+                Applyt is designed to give you complete visibility and control
+                over your entire job search journey.
               </p>
             </div>
             <div className="bg-white rounded-lg shadow-lg p-8">
               <h3 className="font-semibold text-gray-900 mb-4">
-                What you get with AppTracker:
+                What you get with Applyt:
               </h3>
               <ul className="space-y-3">
                 {[
@@ -140,7 +140,7 @@ export default function Homepage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose AppTracker?
+              Why Choose Applyt?
             </h2>
             <p className="text-lg text-gray-600">
               Everything you need to succeed in your job search
@@ -178,8 +178,8 @@ export default function Homepage() {
             Ready to take control of your job search?
           </h2>
           <p className="text-blue-100 text-lg mb-8">
-            Join hundreds of job seekers already using AppTracker. It's free,
-            easy, and secure.
+            Join hundreds of job seekers already using Applyt. It's free, easy,
+            and secure.
           </p>
           <Link
             to="/signup"

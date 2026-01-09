@@ -51,7 +51,7 @@ export default function Nav() {
             <div className="flex">
               <div className="shrink-0 flex items-center">
                 <Link to="/" className="text-2xl font-bold text-blue-600">
-                  AppTracker
+                  Applyt
                 </Link>
               </div>
               {/* Desktop Navigation */}
@@ -135,7 +135,7 @@ export default function Nav() {
                 to="/dashboard"
                 className="text-2xl font-bold text-blue-600"
               >
-                AppTracker
+                Applyt
               </Link>
             </div>
             {/* Desktop Navigation */}
