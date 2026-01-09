@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import {
   FileText,
   SquareKanban,
@@ -7,8 +7,24 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Nav from "../components/Nav";
+import { useAuth } from "../hooks/useAuth";
 
 export default function Homepage() {
+  const { user, isLoading } = useAuth();
+
+  // Redirect to dashboard if user is already logged in
+  if (!isLoading && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   const highlights = [
     {
       icon: FileText,

@@ -1,5 +1,6 @@
 package com.apptracker.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -14,6 +15,7 @@ public class Activity {
     @Column(name = "application_id", columnDefinition = "uuid", nullable = false)
     private UUID applicationId;
 
+    @JsonProperty("activityType")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ActivityType type;
