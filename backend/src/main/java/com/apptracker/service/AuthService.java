@@ -69,7 +69,7 @@ public class AuthService {
         emailVerificationTokenRepository.save(verificationToken);
 
         // Send verification email
-        sendVerificationEmail(saved.getEmail(), verificationToken.getToken());
+        sendVerificationEmail(saved.getEmail(), verificationToken.getToken(), name);
 
         return new RegisterResponse("Registration successful. Please check your email to verify your account.");
 
@@ -147,6 +147,10 @@ public class AuthService {
 
         if (newPassword == null || newPassword.length() < 8) {
             throw new IllegalArgumentException("Password must be at least 8 characters long");
+        }
+
+        if (pwEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("New password must be different from current password");
         }
 
         user.setPasswordHash(pwEncoder.encode(newPassword));
@@ -266,7 +270,7 @@ public class AuthService {
 
         if (existingToken != null && OffsetDateTime.now().isBefore(existingToken.getExpiresAt())) {
             // Token is still valid, just resend the email with the existing token
-            sendVerificationEmail(user.getEmail(), existingToken.getToken());
+            sendVerificationEmail(user.getEmail(), existingToken.getToken(), user.getName());
             return;
         }
 
@@ -284,19 +288,61 @@ public class AuthService {
         emailVerificationTokenRepository.save(verificationToken);
 
         // Send verification email
-        sendVerificationEmail(user.getEmail(), verificationToken.getToken());
+        sendVerificationEmail(user.getEmail(), verificationToken.getToken(), user.getName());
     }
 
     /**
      * Helper method to send verification email
      */
-    private void sendVerificationEmail(String email, String token) {
+    private void sendVerificationEmail(String email, String token, String name) {
         String verificationUrl = System.getenv("FRONTEND_URL") + "/verify-email?token=" + token;
 
         emailService.sendEmail(
                 email,
                 "Verify Your Email",
-                "<a href='" + verificationUrl + "'>Click here to verify your email</a>");
+                String.format(
+                        """
+                                <!DOCTYPE html>
+                                <html>
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <style>
+                                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                                        .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                                        .content { background-color: #f9fafb; padding: 20px; border-radius: 0 0 5px 5px; }
+                                        .button { display: inline-block; background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                                        .footer { margin-top: 30px; font-size: 12px; color: #666; text-align: center; }
+                                        .warning { background-color: #fef3c7; padding: 10px; border-left: 4px solid #f59e0b; margin: 20px 0; border-radius: 3px; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <div class="header">
+                                            <h1>Email Verification</h1>
+                                        </div>
+                                        <div class="content">
+                                            <p>Hi %s,</p>
+                                            <p>We received a request to verify your email address. If you didn't make this request, you can ignore this email.</p>
+                                            <p>Click the button below to verify your email:</p>
+                                            <div style="text-align: center;">
+                                                <a href="%s" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold;">Verify Email</a>                                            </div>
+                                            <p>Or copy and paste this link in your browser:</p>
+                                            <p style="word-break: break-all; font-size: 12px; color: #666;">%s</p>
+                                            <div class="warning">
+                                                <strong>This link expires in 15 minutes.</strong> After that, you'll need to request a new email verification.
+                                            </div>
+                                            <div class="footer">
+                                                <p>If you have any questions, please contact our support team.</p>
+                                                <p>&copy; 2024 AppTracker. All rights reserved.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </body>
+                                </html>
+                                """,
+                        name, verificationUrl, verificationUrl));
+
     }
 
     /**

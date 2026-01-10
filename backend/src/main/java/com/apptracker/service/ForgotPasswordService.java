@@ -22,7 +22,7 @@ public class ForgotPasswordService {
     private final PasswordResetTokenRepository tokenRepository;
     private final EmailService emailService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private static final long TOKEN_EXPIRY_HOURS = 24;
+    private static final long TOKEN_EXPIRY_HOURS = 1;
 
     @Value("${app.frontend-url}")
     private String frontendBaseUrl;
@@ -171,12 +171,12 @@ public class ForgotPasswordService {
                                     <p>We received a request to reset your password. If you didn't make this request, you can ignore this email.</p>
                                     <p>Click the button below to reset your password:</p>
                                     <div style="text-align: center;">
-                                        <a href="%s" class="button">Reset Password</a>
+                                        <a href="%s" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold;">Reset Password</a>                                            </div>
                                     </div>
                                     <p>Or copy and paste this link in your browser:</p>
                                     <p style="word-break: break-all; font-size: 12px; color: #666;">%s</p>
                                     <div class="warning">
-                                        <strong>This link expires in 24 hours.</strong> After that, you'll need to request a new password reset.
+                                        <strong>This link expires in 1 hour.</strong> After that, you'll need to request a new password reset.
                                     </div>
                                     <div class="footer">
                                         <p>If you have any questions, please contact our support team.</p>
