@@ -1,9 +1,7 @@
 package com.apptracker.controller;
 
 import com.apptracker.dto.*;
-import com.apptracker.exception.UnverifiedEmailException;
 import com.apptracker.service.AuthService;
-import jakarta.validation.constraints.Email;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;

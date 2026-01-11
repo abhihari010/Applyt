@@ -14,7 +14,7 @@ import {
   Paperclip,
   Activity,
 } from "lucide-react";
-import api from "../api";
+import api, { Application } from "../api";
 import Nav from "../components/Nav";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
@@ -24,6 +24,7 @@ import ContactsTab from "../components/tabs/ContactsTab";
 import RemindersTab from "../components/tabs/RemindersTab";
 import AttachmentsTab from "../components/tabs/AttachmentsTab";
 import ActivityTab from "../components/tabs/ActivityTab";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
 type Tab =
   | "details"
@@ -40,7 +41,9 @@ export default function ApplicationDetail() {
   const [activeTab, setActiveTab] = useState<Tab>("details");
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
-
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] =
+    useState<Application | null>(null);
   // Fetch application
   const { data: application, isLoading } = useQuery({
     queryKey: ["application", id],
@@ -143,9 +146,24 @@ export default function ApplicationDetail() {
     updateMutation.mutate(dataToSave);
   };
 
-  const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this application?")) {
-      deleteMutation.mutate();
+  const handleDelete = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    application: Application
+  ) => {
+    e.stopPropagation();
+    if (!application) return;
+    setDeleteModalOpen(true);
+    setApplicationToDelete(application);
+  };
+
+  const confirmDelete = () => {
+    if (applicationToDelete) {
+      deleteMutation.mutate(undefined, {
+        onSuccess: () => {
+          setDeleteModalOpen(false);
+          setApplicationToDelete(null);
+        },
+      });
     }
   };
 
@@ -295,7 +313,7 @@ export default function ApplicationDetail() {
                       Edit
                     </button>
                     <button
-                      onClick={handleDelete}
+                      onClick={(e) => handleDelete(e, application)}
                       disabled={deleteMutation.isPending}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 cursor-pointer"
                     >
@@ -359,6 +377,21 @@ export default function ApplicationDetail() {
           </div>
         </div>
       </div>
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setApplicationToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        loading={deleteMutation.isPending}
+        title="Delete Application"
+        message={
+          applicationToDelete
+            ? `Are you sure you want to delete your application to ${applicationToDelete.company} for ${applicationToDelete.role}? This action cannot be undone.`
+            : ""
+        }
+      />
     </div>
   );
 }

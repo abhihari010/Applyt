@@ -10,12 +10,13 @@ import {
   ChevronRight,
   Upload,
 } from "lucide-react";
-import api from "../api";
+import api, { Application } from "../api";
 import Nav from "../components/Nav";
 import ApplicationCard from "../components/ApplicationCard";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import { useAuth } from "../hooks/useAuth";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -27,8 +28,11 @@ export default function Applications() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] =
+    useState<Application | null>(null);
 
-  const { data: applications = [], isLoading } = useQuery({
+  const { data: applications = [], isLoading } = useQuery<Application[]>({
     queryKey: ["applications"],
     queryFn: async () => {
       const response = await api.get("/apps");
@@ -39,7 +43,7 @@ export default function Applications() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       await api.delete(`/apps/${id}`);
     },
     onSuccess: () => {
@@ -56,18 +60,13 @@ export default function Applications() {
 
     // Filter out archived applications unless user preference says to show them
     if (!user?.showArchivedApps) {
-      filtered = filtered.filter((app: any) => !app.archived);
-    }
-
-    // Filter out archived applications unless user preference says to show them
-    if (!user?.showArchivedApps) {
-      filtered = filtered.filter((app: any) => !app.archived);
+      filtered = filtered.filter((app: Application) => !app.archived);
     }
 
     // Search filter
     if (searchQuery) {
       filtered = filtered.filter(
-        (app: any) =>
+        (app: Application) =>
           app.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           app.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           app.location?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -76,12 +75,16 @@ export default function Applications() {
 
     // Status filter
     if (statusFilter !== "ALL") {
-      filtered = filtered.filter((app: any) => app.status === statusFilter);
+      filtered = filtered.filter(
+        (app: Application) => app.status === statusFilter
+      );
     }
 
     // Priority filter
     if (priorityFilter !== "ALL") {
-      filtered = filtered.filter((app: any) => app.priority === priorityFilter);
+      filtered = filtered.filter(
+        (app: Application) => app.priority === priorityFilter
+      );
     }
 
     return filtered;
@@ -100,10 +103,26 @@ export default function Applications() {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handleDelete = async (id: number, e: React.MouseEvent) => {
+  const handleDelete = async (
+    id: string,
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this application?")) {
-      deleteMutation.mutate(id);
+    const app = applications.find((a) => a.id === id);
+    if (app) {
+      setApplicationToDelete(app);
+      setDeleteModalOpen(true);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (applicationToDelete) {
+      deleteMutation.mutate(applicationToDelete.id, {
+        onSuccess: () => {
+          setDeleteModalOpen(false);
+          setApplicationToDelete(null);
+        },
+      });
     }
   };
 
@@ -237,7 +256,7 @@ export default function Applications() {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedApplications.map((application: any) => (
+                {paginatedApplications.map((application: Application) => (
                   <div key={application.id} className="relative group">
                     <ApplicationCard
                       application={application}
@@ -297,6 +316,22 @@ export default function Applications() {
           )}
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setApplicationToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        loading={deleteMutation.isPending}
+        title="Delete Application"
+        message={
+          applicationToDelete
+            ? `Are you sure you want to delete your application to ${applicationToDelete.company} for ${applicationToDelete.role}? This action cannot be undone.`
+            : ""
+        }
+      />
     </div>
   );
 }

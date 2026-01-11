@@ -2,16 +2,7 @@ import { MapPin, Calendar, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import StatusBadge from "./StatusBadge";
 import PriorityBadge from "./PriorityBadge";
-
-interface Application {
-  id: number;
-  company: string;
-  role: string;
-  location?: string;
-  dateApplied?: string;
-  status: string;
-  priority: string;
-}
+import { Application } from "src/api";
 
 interface ApplicationCardProps {
   application: Application;
