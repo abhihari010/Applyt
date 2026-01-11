@@ -116,9 +116,6 @@ export default function Analytics() {
   const offerCount = apps.filter((app: any) =>
     ["OFFER"].includes(app.status)
   ).length;
-  const acceptedCount = apps.filter(
-    (app: any) => app.status === "OFFER"
-  ).length;
 
   const interviewRate =
     appliedCount > 0
@@ -128,8 +125,8 @@ export default function Analytics() {
     interviewedCount > 0
       ? ((offerCount / interviewedCount) * 100).toFixed(1)
       : "0";
-  const acceptanceRate =
-    offerCount > 0 ? ((acceptedCount / offerCount) * 100).toFixed(1) : "0";
+  const overallSuccessRate =
+    appliedCount > 0 ? ((offerCount / appliedCount) * 100).toFixed(1) : "0";
 
   const stats = [
     {
@@ -210,12 +207,14 @@ export default function Analytics() {
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">Acceptance Rate</p>
+                <p className="text-sm text-gray-600 mb-2">
+                  Overall Success Rate
+                </p>
                 <p className="text-4xl font-bold text-emerald-600">
-                  {acceptanceRate}%
+                  {overallSuccessRate}%
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {acceptedCount} of {offerCount} offers
+                  {offerCount} of {appliedCount} applied
                 </p>
               </div>
             </div>

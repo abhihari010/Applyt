@@ -35,7 +35,7 @@ export default function Board() {
   const { user } = useAuth();
   const [activeId, setActiveId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [compactView, setCompactView] = useState(false);
+  const [compactView, setCompactView] = useState(true);
   const [dateRange, setDateRange] = useState("all");
   const [companyFilter, setCompanyFilter] = useState("");
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>(
