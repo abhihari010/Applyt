@@ -34,6 +34,15 @@ type Tab =
   | "attachments"
   | "activity";
 
+const STATUSES = [
+  { id: "SAVED", label: "Saved" },
+  { id: "APPLIED", label: "Applied" },
+  { id: "OA", label: "Online Assessment" },
+  { id: "INTERVIEW", label: "Interview" },
+  { id: "OFFER", label: "Offer" },
+  { id: "REJECTED", label: "Rejected" },
+];
+
 export default function ApplicationDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -45,6 +54,7 @@ export default function ApplicationDetail() {
   const [applicationToDelete, setApplicationToDelete] =
     useState<Application | null>(null);
   // Fetch application
+
   const { data: application, isLoading } = useQuery({
     queryKey: ["application", id],
     queryFn: async () => {
@@ -148,7 +158,7 @@ export default function ApplicationDetail() {
 
   const handleDelete = (
     e: React.MouseEvent<HTMLButtonElement>,
-    application: Application
+    application: Application,
   ) => {
     e.stopPropagation();
     if (!application) return;
@@ -254,13 +264,11 @@ export default function ApplicationDetail() {
                         }
                         className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       >
-                        <option value="APPLIED">Applied</option>
-                        <option value="ONLINE_ASSESSMENT">
-                          Online Assessment
-                        </option>
-                        <option value="INTERVIEWED">Interviewed</option>
-                        <option value="OFFER">Offer</option>
-                        <option value="REJECTED">Rejected</option>
+                        {STATUSES.map((status) => (
+                          <option key={status.id} value={status.id}>
+                            {status.label}
+                          </option>
+                        ))}
                       </select>
                       <select
                         value={editForm.priority}
