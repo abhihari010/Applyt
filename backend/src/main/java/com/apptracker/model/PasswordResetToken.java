@@ -14,9 +14,6 @@ public class PasswordResetToken {
     @Column(name = "user_id", columnDefinition = "uuid", nullable = false)
     private UUID userId;
 
-    @Column(nullable = false, unique = true)
-    private String token;
-
     @Column(name = "expires_at", nullable = false)
     private OffsetDateTime expiresAt;
 
@@ -25,6 +22,9 @@ public class PasswordResetToken {
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
+
+    @Column(nullable = false, unique = true)
+    private String tokenHash;
 
     public PasswordResetToken() {
         this.id = UUID.randomUUID();
@@ -49,12 +49,12 @@ public class PasswordResetToken {
         this.userId = userId;
     }
 
-    public String getToken() {
-        return token;
+    public String getTokenHash() {
+        return tokenHash;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setTokenHash(String tokenHash) {
+        this.tokenHash = tokenHash;
     }
 
     public OffsetDateTime getExpiresAt() {

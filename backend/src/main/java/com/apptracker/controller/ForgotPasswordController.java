@@ -33,8 +33,9 @@ public class ForgotPasswordController {
         return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
     }
 
-    @GetMapping("/validate/{token}")
-    public ResponseEntity<?> validateToken(@PathVariable String token) {
+    @PostMapping("/validate")
+    public ResponseEntity<?> validateToken(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
         boolean isValid = forgotPasswordService.isValidToken(token);
 
         if (!isValid) {

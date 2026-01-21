@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { authApi } from "../api";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token");
+  const location = useLocation();
+  const [token, setToken] = useState<string | null>(null);
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -14,6 +15,16 @@ export default function ResetPassword() {
   const [validToken, setValidToken] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    const hash = location.hash;
+    const hashToken =
+      hash && hash.startsWith("#token=")
+        ? decodeURIComponent(hash.slice("#token=".length))
+        : null;
+    const queryToken = searchParams.get("token");
+    setToken(hashToken || queryToken);
+  }, [location.hash, searchParams]);
 
   useEffect(() => {
     // Validate token on mount

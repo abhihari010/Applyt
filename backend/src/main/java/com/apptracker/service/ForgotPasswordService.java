@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.Base64;
 
@@ -45,7 +48,7 @@ public class ForgotPasswordService {
 
             PasswordResetToken resetToken = new PasswordResetToken();
             resetToken.setUserId(user.getId());
-            resetToken.setToken(token);
+            resetToken.setTokenHash(hashToken(token));
             resetToken.setExpiresAt(OffsetDateTime.now().plusHours(TOKEN_EXPIRY_HOURS));
             tokenRepository.save(resetToken);
 
@@ -64,7 +67,8 @@ public class ForgotPasswordService {
         }
 
         // Find token
-        PasswordResetToken resetToken = tokenRepository.findByToken(token)
+        String tokenHash = hashToken(token);
+        PasswordResetToken resetToken = tokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
 
         // Check if token is expired
@@ -94,28 +98,14 @@ public class ForgotPasswordService {
         tokenRepository.save(resetToken);
     }
 
-    /**
-     * Validate if a password reset token is valid and unused
-     */
     public boolean isValidToken(String token) {
         if (token == null || token.trim().isEmpty()) {
             return false;
         }
 
-        PasswordResetToken resetToken = tokenRepository.findByToken(token)
-                .orElse(null);
-
-        if (resetToken == null) {
-            return false;
-        }
-
-        // Check if expired
-        if (resetToken.getExpiresAt().isBefore(OffsetDateTime.now())) {
-            return false;
-        }
-
-        // Check if already used
-        return !resetToken.isUsed();
+        return tokenRepository.findByTokenHash(hashToken(token))
+                .filter(t -> !t.isUsed() && t.getExpiresAt().isAfter(OffsetDateTime.now()))
+                .isPresent();
     }
 
     /**
@@ -128,11 +118,29 @@ public class ForgotPasswordService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
     }
 
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                String h = Integer.toHexString(0xff & b);
+                if (h.length() == 1) {
+                    hex.append('0');
+                }
+                hex.append(h);
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
+    }
+
     /**
      * Send password reset email to user
      */
     private void sendPasswordResetEmail(User user, String token) {
-        String resetLink = String.format("%s/reset-password?token=%s", frontendBaseUrl, token);
+        String resetLink = String.format("%s/reset-password#token=%s", frontendBaseUrl, token);
         String emailBody = buildPasswordResetEmail(user.getName(), resetLink);
 
         emailService.sendEmail(
