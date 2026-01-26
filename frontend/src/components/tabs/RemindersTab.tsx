@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Bell, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isPast, isToday, isTomorrow } from "date-fns";
 import api from "../../api";
 
 interface RemindersTabProps {
@@ -16,6 +16,42 @@ export default function RemindersTab({
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ remindAt: "", message: "" });
+
+  const getUrgency = (date: string) => {
+    const reminderDate = new Date(date);
+    const now = new Date();
+
+    if (isPast(reminderDate) && reminderDate < now) {
+      return {
+        label: "OVERDUE",
+        bgColor: "bg-red-50",
+        textColor: "text-red-800",
+        borderColor: "border-red-500",
+      };
+    }
+    if (isToday(reminderDate)) {
+      return {
+        label: "TODAY",
+        bgColor: "bg-orange-50",
+        textColor: "text-orange-800",
+        borderColor: "border-orange-500",
+      };
+    }
+    if (isTomorrow(reminderDate)) {
+      return {
+        label: "TOMORROW",
+        bgColor: "bg-yellow-50",
+        textColor: "text-yellow-800",
+        borderColor: "border-yellow-500",
+      };
+    }
+    return {
+      label: "UPCOMING",
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-800",
+      borderColor: "border-purple-500",
+    };
+  };
 
   const addReminderMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -97,28 +133,35 @@ export default function RemindersTab({
       )}
 
       <div className="space-y-3">
-        {reminders.map((reminder: any) => (
-          <div
-            key={reminder.id}
-            className="bg-white border border-gray-200 rounded-lg p-4 flex justify-between items-start"
-          >
-            <div className="flex-1">
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                <Bell className="h-4 w-4" />
-                <span>
-                  {format(new Date(reminder.remindAt), "MMM d, yyyy h:mm a")}
-                </span>
-              </div>
-              <p className="text-gray-700">{reminder.message}</p>
-            </div>
-            <button
-              onClick={() => deleteReminderMutation.mutate(reminder.id)}
-              className="text-red-600 hover:text-red-700 ml-4"
+        {reminders.map((reminder: any) => {
+          const urgency = getUrgency(reminder.remindAt);
+          return (
+            <div
+              key={reminder.id}
+              className={`bg-white border-l-4 ${urgency.borderColor} ${urgency.bgColor} rounded-r-lg p-4 flex justify-between items-start`}
             >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={`text-xs font-bold px-2 py-1 rounded ${urgency.bgColor} ${urgency.textColor}`}
+                  >
+                    {urgency.label}
+                  </span>
+                  <span className="text-sm text-gray-600">
+                    {format(new Date(reminder.remindAt), "MMM d, yyyy h:mm a")}
+                  </span>
+                </div>
+                <p className="text-gray-900 font-medium">{reminder.message}</p>
+              </div>
+              <button
+                onClick={() => deleteReminderMutation.mutate(reminder.id)}
+                className="text-red-600 hover:text-red-700 ml-4"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          );
+        })}
         {reminders.length === 0 && (
           <p className="text-gray-500 text-center py-8">No reminders yet</p>
         )}
