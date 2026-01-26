@@ -21,8 +21,15 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { TrendingUp, TrendingDown, Target, CheckCircle } from "lucide-react";
-import api from "../api";
+import {
+  TrendingUp,
+  TrendingDown,
+  Target,
+  CheckCircle,
+  Clock,
+  Award,
+} from "lucide-react";
+import api, { Application } from "../api";
 import Nav from "../components/Nav";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -59,7 +66,7 @@ export default function Analytics() {
   const apps = Array.isArray(applications) ? applications : [];
 
   // Status distribution
-  const statusCounts = apps.reduce((acc: any, app: any) => {
+  const statusCounts = apps.reduce((acc: any, app: Application) => {
     if (app && app.status) {
       acc[app.status] = (acc[app.status] || 0) + 1;
     }
@@ -83,7 +90,7 @@ export default function Analytics() {
 
   const weeklyData = weeks.map((weekStart) => {
     const weekEnd = endOfWeek(weekStart);
-    const count = apps.filter((app: any) => {
+    const count = apps.filter((app: Application) => {
       const appDate = new Date(app.dateApplied || app.createdAt);
       return appDate >= weekStart && appDate <= weekEnd;
     }).length;
@@ -95,7 +102,7 @@ export default function Analytics() {
   });
 
   // Priority distribution
-  const priorityCounts = apps.reduce((acc: any, app: any) => {
+  const priorityCounts = apps.reduce((acc: any, app: Application) => {
     acc[app.priority] = (acc[app.priority] || 0) + 1;
     return acc;
   }, {});
@@ -107,14 +114,14 @@ export default function Analytics() {
 
   // Conversion metrics
   const totalApps = apps.length;
-  const appliedCount = apps.filter((app: any) =>
-    ["APPLIED", "OA", "INTERVIEW", "OFFER"].includes(app.status)
+  const appliedCount = apps.filter((app: Application) =>
+    ["APPLIED", "OA", "INTERVIEW", "OFFER"].includes(app.status),
   ).length;
-  const interviewedCount = apps.filter((app: any) =>
-    ["INTERVIEW", "OFFER"].includes(app.status)
+  const interviewedCount = apps.filter((app: Application) =>
+    ["INTERVIEW", "OFFER"].includes(app.status),
   ).length;
-  const offerCount = apps.filter((app: any) =>
-    ["OFFER"].includes(app.status)
+  const offerCount = apps.filter((app: Application) =>
+    ["OFFER"].includes(app.status),
   ).length;
 
   const interviewRate =
@@ -127,6 +134,36 @@ export default function Analytics() {
       : "0";
   const overallSuccessRate =
     appliedCount > 0 ? ((offerCount / appliedCount) * 100).toFixed(1) : "0";
+
+  // New Metrics for Preview Match
+  // Response Rate: % of applications that got past "Applied" status
+  const respondedApps = apps.filter((app: Application) =>
+    ["OA", "INTERVIEW", "OFFER", "REJECTED"].includes(app.status),
+  ).length;
+  const responseRate =
+    totalApps > 0 ? ((respondedApps / totalApps) * 100).toFixed(0) : "0";
+
+  // Avg Time to Offer: Days between dateApplied and offer status
+  const offeredApps = apps.filter((app: Application) => app.status === "OFFER");
+  const avgTimeToOffer =
+    offeredApps.length > 0
+      ? Math.round(
+          offeredApps.reduce((sum: number, app: Application) => {
+            const applied = new Date(app.dateApplied || app.createdAt);
+            const now = new Date();
+            const days = Math.floor(
+              (now.getTime() - applied.getTime()) / (1000 * 60 * 60 * 24),
+            );
+            return sum + days;
+          }, 0) / offeredApps.length,
+        )
+      : 0;
+
+  // Interview Success Rate: % of interviews that led to offers
+  const interviewSuccessRate =
+    interviewedCount > 0
+      ? ((offerCount / interviewedCount) * 100).toFixed(0)
+      : "0";
 
   const stats = [
     {
@@ -182,41 +219,54 @@ export default function Analytics() {
             ))}
           </div>
 
-          {/* Conversion Rates */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Conversion Funnel
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">Interview Rate</p>
-                <p className="text-4xl font-bold text-yellow-600">
-                  {interviewRate}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {interviewedCount} of {appliedCount} applied
-                </p>
+          {/* Key Performance Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="bg-brand-100 p-2 rounded-lg">
+                  <Target className="w-5 h-5 text-brand-600" />
+                </div>
+                <span className="text-xs font-bold text-green-600">
+                  {respondedApps > 0 ? "+" : ""}
+                  {respondedApps}
+                </span>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">Offer Rate</p>
-                <p className="text-4xl font-bold text-green-600">
-                  {offerRate}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {offerCount} of {interviewedCount} interviewed
-                </p>
+              <div className="text-3xl font-bold text-gray-900 mb-1">
+                {responseRate}%
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">
-                  Overall Success Rate
-                </p>
-                <p className="text-4xl font-bold text-emerald-600">
-                  {overallSuccessRate}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {offerCount} of {appliedCount} applied
-                </p>
+              <div className="text-sm text-gray-600">Response Rate</div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="bg-brand-100 p-2 rounded-lg">
+                  <Clock className="w-5 h-5 text-brand-600" />
+                </div>
+                <span className="text-xs font-bold text-green-600">
+                  {avgTimeToOffer > 0 ? "-" : ""}
+                  {avgTimeToOffer > 0 ? `${avgTimeToOffer}d` : "N/A"}
+                </span>
               </div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">
+                {avgTimeToOffer > 0 ? `${avgTimeToOffer} days` : "N/A"}
+              </div>
+              <div className="text-sm text-gray-600">Avg. Time to Offer</div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="bg-brand-100 p-2 rounded-lg">
+                  <Award className="w-5 h-5 text-brand-600" />
+                </div>
+                <span className="text-xs font-bold text-green-600">
+                  {offerCount > 0 ? "+" : ""}
+                  {offerCount}
+                </span>
+              </div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">
+                {interviewSuccessRate}%
+              </div>
+              <div className="text-sm text-gray-600">Interview Success</div>
             </div>
           </div>
 
