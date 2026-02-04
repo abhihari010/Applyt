@@ -1,8 +1,8 @@
-import React from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import Nav from "../components/Nav";
-import { remindersApi, applicationsApi, analyticsApi } from "../api";
+import { remindersApi, applicationsApi, analyticsApi, Reminder } from "../api";
 import {
   Bell,
   TrendingUp,
@@ -13,10 +13,15 @@ import {
   CheckSquare,
 } from "lucide-react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
+import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [reminderToDelete, setReminderToDelete] = useState<Reminder | null>(
+    null,
+  );
 
   const { data: reminders } = useQuery({
     queryKey: ["reminders", "all"],
@@ -43,7 +48,7 @@ export default function Dashboard() {
   const stats = [
     {
       label: "Total Applications",
-      value: analytics
+      value: analytics?.statusCounts
         ? Object.values(analytics.statusCounts).reduce((a, b) => a + b, 0)
         : 0,
       icon: TrendingUp,
@@ -52,21 +57,21 @@ export default function Dashboard() {
     {
       label: "In Progress",
       value:
-        (analytics?.statusCounts.APPLIED || 0) +
-        (analytics?.statusCounts.OA || 0) +
-        (analytics?.statusCounts.INTERVIEW || 0),
+        (analytics?.statusCounts?.APPLIED || 0) +
+        (analytics?.statusCounts?.OA || 0) +
+        (analytics?.statusCounts?.INTERVIEW || 0),
       icon: Clock,
       color: "bg-yellow-500",
     },
     {
       label: "Offers",
-      value: analytics?.statusCounts.OFFER || 0,
+      value: analytics?.statusCounts?.OFFER || 0,
       icon: CheckCircle,
       color: "bg-green-500",
     },
     {
       label: "Due Reminders",
-      value: reminders?.filter((r) => !r.completed).length || 0,
+      value: Array.isArray(reminders) ? reminders.filter((r) => !r.completed).length : 0,
       icon: Bell,
       color: "bg-purple-500",
     },
@@ -87,21 +92,36 @@ export default function Dashboard() {
     },
   });
 
-  const handleDelete = async (
-    appId: string,
-    id: string,
-    e: React.MouseEvent
-  ) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("Are you sure you want to delete this reminder?")) {
-      deleteMutation.mutate({ appId, id });
+    const reminder = Array.isArray(reminders) ? reminders.find((r) => r.id === id) : undefined;
+    if (reminder) {
+      setReminderToDelete(reminder);
+      setDeleteModalOpen(true);
+    }
+  };
+
+  const confirmDeleteReminder = () => {
+    if (reminderToDelete) {
+      deleteMutation.mutate(
+        {
+          appId: reminderToDelete.applicationId,
+          id: reminderToDelete.id,
+        },
+        {
+          onSuccess: () => {
+            setDeleteModalOpen(false);
+            setReminderToDelete(null);
+          },
+        },
+      );
     }
   };
 
   const handleComplete = async (
     appId: string,
     id: string,
-    e: React.MouseEvent
+    e: React.MouseEvent,
   ) => {
     e.stopPropagation();
     completeMutation.mutate({ appId, id });
@@ -144,7 +164,9 @@ export default function Dashboard() {
   };
 
   const getApplicationName = (appId: string) => {
-    const app = allApps?.content?.find((a: any) => a.id === appId);
+    const app = Array.isArray(allApps?.content) 
+      ? allApps.content.find((a: any) => a.id === appId)
+      : null;
     return app ? { company: app.company, role: app.role } : null;
   };
 
@@ -189,7 +211,7 @@ export default function Dashboard() {
               <Bell className="w-5 h-5 mr-2 text-purple-600" />
               Upcoming Reminders
             </h2>
-            {reminders && reminders.filter((r) => !r.completed).length > 0 ? (
+            {Array.isArray(reminders) && reminders.filter((r) => !r.completed).length > 0 ? (
               <div className="space-y-3 max-h-80 overflow-y-auto">
                 {reminders
                   .filter((r) => !r.completed)
@@ -225,7 +247,7 @@ export default function Dashboard() {
                             <p className="text-xs text-gray-500">
                               {format(
                                 new Date(reminder.remindAt),
-                                "MMM d, yyyy h:mm a"
+                                "MMM d, yyyy h:mm a",
                               )}
                             </p>
                           </div>
@@ -235,7 +257,7 @@ export default function Dashboard() {
                                 handleComplete(
                                   reminder.applicationId,
                                   reminder.id,
-                                  e
+                                  e,
                                 )
                               }
                               className="p-1.5 text-green-600 hover:bg-green-100 rounded transition-colors cursor-pointer"
@@ -245,13 +267,7 @@ export default function Dashboard() {
                               <CheckSquare className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={(e) =>
-                                handleDelete(
-                                  reminder.applicationId,
-                                  reminder.id,
-                                  e
-                                )
-                              }
+                              onClick={(e) => handleDelete(reminder.id, e)}
                               className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors cursor-pointer"
                               title="Delete"
                               disabled={deleteMutation.isPending}
@@ -301,10 +317,10 @@ export default function Dashboard() {
                           app.status === "OFFER"
                             ? "bg-green-100 text-green-800"
                             : app.status === "REJECTED"
-                            ? "bg-red-100 text-red-800"
-                            : app.status === "INTERVIEW"
-                            ? "bg-orange-100 text-orange-800"
-                            : "bg-blue-100 text-blue-800"
+                              ? "bg-red-100 text-red-800"
+                              : app.status === "INTERVIEW"
+                                ? "bg-orange-100 text-orange-800"
+                                : "bg-blue-100 text-blue-800"
                         }`}
                       >
                         {app.status}
@@ -352,6 +368,22 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setReminderToDelete(null);
+        }}
+        onConfirm={confirmDeleteReminder}
+        loading={deleteMutation.isPending}
+        title="Delete Reminder"
+        message={
+          reminderToDelete
+            ? `Are you sure you want to delete this reminder? This action cannot be undone.`
+            : ""
+        }
+      />
     </div>
   );
 }
