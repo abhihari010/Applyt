@@ -4,10 +4,10 @@ interface PriorityBadgeProps {
 }
 
 const PRIORITY_STYLES: Record<string, string> = {
-  LOW: "bg-gray-100 text-gray-700 border-gray-300",
-  MEDIUM: "bg-blue-100 text-blue-700 border-blue-300",
-  HIGH: "bg-orange-100 text-orange-700 border-orange-300",
-  URGENT: "bg-red-100 text-red-700 border-red-300",
+  LOW: "bg-neutral-100 text-neutral-700 border-neutral-300",
+  MEDIUM: "bg-brand-50 text-brand-800 border-brand-200",
+  HIGH: "bg-accent-50 text-accent-800 border-accent-200",
+  URGENT: "bg-red-50 text-red-800 border-red-200",
 };
 
 export default function PriorityBadge({
@@ -18,7 +18,7 @@ export default function PriorityBadge({
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${style} ${className}`}
+      className={`inline-flex items-center rounded-md border px-2 py-1 font-mono text-[11px] font-semibold ${style} ${className}`}
     >
       {priority}
     </span>

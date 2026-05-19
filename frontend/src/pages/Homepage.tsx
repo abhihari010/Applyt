@@ -1,13 +1,17 @@
 import { Link, Navigate } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
 import {
-  FileText,
-  SquareKanban,
-  BarChart3,
-  CheckCircle,
   ArrowRight,
-  Sparkles,
-  Zap,
+  BarChart3,
+  Bell,
+  CheckCircle2,
+  FileText,
+  LockKeyhole,
+  MailCheck,
   Shield,
+  Sparkles,
+  SquareKanban,
+  Upload,
 } from "lucide-react";
 import Nav from "../components/Nav";
 import { useAuth } from "../hooks/useAuth";
@@ -15,453 +19,336 @@ import KanbanPreview from "../components/KanbanPreview";
 import SmartReminders from "../components/RemindersPreview";
 import AnalyticsPreview from "../components/AnalyticsPreview";
 
+const fadeUp = {
+  hidden: { opacity: 0, transform: "translateY(18px)" },
+  visible: { opacity: 1, transform: "translateY(0px)" },
+};
+
+const proofPoints = [
+  ["42", "active applications without spreadsheet drift"],
+  ["3.7d", "average follow-up window kept visible"],
+  ["18", "interviews grouped by stage, contact, and date"],
+];
+
+const searchTimeline = [
+  { label: "Applied", detail: "Resume sent to Forgewell Labs", tone: "ink" },
+  { label: "Follow-up", detail: "Email Maya before Thursday noon", tone: "gold" },
+  { label: "Interview", detail: "Panel prep notes pinned to role", tone: "green" },
+];
+
+const featureCards = [
+  {
+    icon: FileText,
+    title: "Notes that stay attached",
+    description:
+      "Contacts, recruiter context, interview prompts, salary ranges, and links live beside the role they belong to.",
+  },
+  {
+    icon: Shield,
+    title: "Private by default",
+    description:
+      "Your search data is treated like personal career material, not lead-gen inventory.",
+  },
+  {
+    icon: Upload,
+    title: "CSV import",
+    description:
+      "Bring an existing tracker in quickly, then keep the process moving from a cleaner board.",
+  },
+];
+
 export default function Homepage() {
   const { user, isLoading } = useAuth();
+  const reduceMotion = useReducedMotion();
 
-  // Redirect to dashboard if user is already logged in
   if (!isLoading && user) {
     return <Navigate to="/dashboard" replace />;
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
+      <div className="landing-shell flex min-h-[100dvh] items-center justify-center bg-[#f6f1e8]">
+        <div className="landing-card px-6 py-4 text-sm font-semibold text-[#283029]">
+          Loading Applyt
+        </div>
       </div>
     );
   }
 
+  const transition = reduceMotion
+    ? { duration: 0 }
+    : { duration: 0.55, ease: [0.23, 1, 0.32, 1] };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-brand-50/30">
+    <div className="landing-shell min-h-[100dvh] bg-[#f6f1e8] text-[#22251f]">
       <Nav />
 
-      {/* Hero Section - Asymmetric Layout with Product Visual */}
-      <section className="relative overflow-hidden pt-16 pb-24 lg:pt-24 lg:pb-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left Column - Copy */}
-            <div className="space-y-8 animate-fade-in-up">
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-100 to-accent-100 px-4 py-2 rounded-full">
-                <Sparkles className="w-4 h-4 text-brand-600" />
-                <span className="text-sm font-semibold text-brand-700">
-                  Smart Job Application Tracking
-                </span>
+      <main className="overflow-hidden">
+        <section className="landing-grid relative px-4 pb-20 pt-14 sm:px-6 lg:px-8 lg:pb-28 lg:pt-20">
+          <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-end">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+              transition={transition}
+              className="relative"
+            >
+              <div className="mb-8 inline-flex items-center gap-2 border border-[#2c332c]/15 bg-[#fffaf0]/75 px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-[#475044] shadow-[0_12px_35px_-28px_rgba(34,37,31,0.9)] backdrop-blur">
+                <Sparkles className="h-4 w-4 text-[#af7c21]" strokeWidth={1.8} />
+                Built for the messy middle of job searching
               </div>
 
-              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-neutral-900 leading-tight">
-                Land Your Dream Job{" "}
-                <span className="gradient-text">Faster</span>
+              <h1 className="max-w-4xl text-[clamp(3.15rem,8vw,7.6rem)] font-black leading-[0.86] text-[#20231e]">
+                Turn every application into a clear next move.
               </h1>
 
-              <p className="text-xl text-neutral-600 max-w-xl leading-relaxed">
-                Stop juggling spreadsheets. Applyt allows you to set reminders,
-                provides a visual pipeline tracking system, and analytics that
-                actually help you get hired.
+              <p className="mt-8 max-w-2xl text-lg leading-8 text-[#596154] sm:text-xl">
+                Applyt gives your job hunt a working surface: pipeline stages,
+                follow-up reminders, interview notes, and analytics that show
+                where momentum is actually building.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/signup"
-                  className="group inline-flex items-center justify-center px-8 py-4 bg-brand-600 text-white font-semibold rounded-xl shadow-elevation-2 hover:bg-brand-700 hover:shadow-elevation-3 hover:-translate-y-0.5 transition-all duration-200"
+                  className="landing-button group inline-flex min-h-12 items-center justify-center gap-3 bg-[#22251f] px-6 py-3 text-sm font-bold text-[#fffaf0] shadow-[0_18px_45px_-24px_rgba(34,37,31,0.75)]"
                 >
-                  Get Started Free
-                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  Start tracking free
+                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
                 </Link>
                 <Link
                   to="/features"
-                  className="inline-flex items-center justify-center px-8 py-4 bg-white text-brand-600 font-semibold rounded-xl border-2 border-brand-200 hover:border-brand-300 hover:bg-brand-50 transition-all duration-200"
+                  className="landing-button inline-flex min-h-12 items-center justify-center gap-3 border border-[#22251f]/20 bg-[#fffaf0]/70 px-6 py-3 text-sm font-bold text-[#22251f] backdrop-blur"
                 >
-                  Explore Features
+                  See the workflow
                 </Link>
               </div>
+            </motion.div>
 
-              {/* Social Proof */}
-              <div className="flex items-center gap-6 pt-4">
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-accent-400 border-2 border-white"
-                    />
+            <motion.div
+              initial={reduceMotion ? false : { opacity: 0, transform: "translateY(26px) rotate(-1deg)" }}
+              animate={{ opacity: 1, transform: "translateY(0px) rotate(-1deg)" }}
+              transition={transition}
+              className="relative"
+            >
+              <div className="landing-board-shell relative mx-auto max-w-3xl rotate-[-1deg] border border-[#262820]/15 bg-[#fffaf0] p-3 shadow-[0_28px_80px_-48px_rgba(34,37,31,0.85)]">
+                <div className="flex items-center justify-between border-b border-[#262820]/10 px-3 pb-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-[#8a6421]">
+                      Today&apos;s board
+                    </p>
+                    <p className="text-sm font-semibold text-[#596154]">
+                      Three roles need attention before Friday
+                    </p>
+                  </div>
+                  <div className="hidden items-center gap-2 rounded-full bg-[#dfe9d0] px-3 py-1 text-xs font-black text-[#315239] sm:flex">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-[#4b7f52]" />
+                    live
+                  </div>
+                </div>
+                <div className="pt-4">
+                  <KanbanPreview />
+                </div>
+              </div>
+
+              <div className="landing-float-card absolute -bottom-6 left-3 max-w-[18rem] border border-[#2b3028]/15 bg-[#233026] p-4 text-[#fffaf0] shadow-[0_22px_50px_-34px_rgba(35,48,38,0.9)] sm:left-10">
+                <div className="mb-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#d7b56d]">
+                  <MailCheck className="h-4 w-4" />
+                  Reminder queued
+                </div>
+                <p className="text-sm leading-6 text-[#edf3e6]">
+                  Follow up with Northstar Systems after the technical screen.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        <section className="border-y border-[#22251f]/10 bg-[#22251f] px-4 py-5 text-[#fffaf0] sm:px-6 lg:px-8">
+          <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
+            {proofPoints.map(([value, label]) => (
+              <div key={label} className="flex items-baseline gap-4">
+                <span className="text-3xl font-black text-[#d7b56d]">{value}</span>
+                <span className="text-sm font-medium leading-5 text-[#dfe9d0]">
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+          <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+            <div>
+              <p className="landing-kicker">The Applyt difference</p>
+              <h2 className="mt-4 max-w-xl text-4xl font-black leading-tight text-[#22251f] sm:text-5xl">
+                A search command center, not another blank spreadsheet.
+              </h2>
+              <p className="mt-5 max-w-xl text-lg leading-8 text-[#596154]">
+                Your job hunt changes every day. Applyt keeps the moving pieces
+                connected so the next action is visible before it becomes a
+                missed opportunity.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[0.95fr_1.05fr]">
+              <div className="landing-card p-5">
+                <div className="mb-5 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.18em] text-[#8a6421]">
+                      Next actions
+                    </p>
+                    <h3 className="mt-1 text-xl font-black text-[#22251f]">
+                      Search timeline
+                    </h3>
+                  </div>
+                  <Bell className="h-5 w-5 text-[#8a6421]" />
+                </div>
+                <div className="space-y-3">
+                  {searchTimeline.map((item, index) => (
+                    <motion.div
+                      key={item.detail}
+                      initial={reduceMotion ? false : { opacity: 0, transform: "translateX(-12px)" }}
+                      whileInView={{ opacity: 1, transform: "translateX(0px)" }}
+                      viewport={{ once: true, margin: "-80px" }}
+                      transition={{ ...transition, delay: index * 0.08 }}
+                      className="flex gap-3 border-t border-[#22251f]/10 pt-3 first:border-t-0 first:pt-0"
+                    >
+                      <span
+                        className={`mt-1 h-3 w-3 rounded-full ${
+                          item.tone === "gold"
+                            ? "bg-[#c08b2b]"
+                            : item.tone === "green"
+                              ? "bg-[#4b7f52]"
+                              : "bg-[#22251f]"
+                        }`}
+                      />
+                      <div>
+                        <p className="text-sm font-black text-[#22251f]">
+                          {item.label}
+                        </p>
+                        <p className="text-sm leading-6 text-[#596154]">
+                          {item.detail}
+                        </p>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
-                <div>
-                  <div className="text-sm font-semibold text-neutral-900">
-                    500+ job seekers
-                  </div>
-                  <div className="text-xs text-neutral-500">
-                    organized their search
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Interactive Kanban Preview */}
-            <div className="relative animate-fade-in lg:animate-slide-in-left">
-              <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/20 to-accent-500/20 rounded-3xl blur-3xl" />
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-elevation-4 p-6 border border-neutral-200">
-                <KanbanPreview />
               </div>
 
-              {/* Floating badge */}
-              <div className="absolute -top-4 -right-4 bg-success-DEFAULT text-white px-4 py-2 rounded-xl shadow-elevation-3 animate-float">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4" />
-                  <span className="text-sm font-bold">Live Tracking</span>
-                </div>
+              <div className="landing-card landing-card-dark p-5">
+                <SmartReminders />
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Background Decoration */}
-        <div className="absolute top-0 right-0 -z-10 w-96 h-96 bg-brand-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 -z-10 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl" />
-      </section>
-
-      {/* Signature Differentiator - Smart Reminders */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-brand-600 via-brand-700 to-accent-700 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/5" />
-
-        <div className="max-w-7xl mx-auto relative">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Visual First */}
-            <div className="order-2 lg:order-1 animate-fade-in-up">
-              <SmartReminders />
-            </div>
-
-            {/* Copy */}
-            <div className="order-1 lg:order-2 space-y-6 text-white">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-sm font-semibold">
-                  What Makes Applyt Different
-                </span>
+        <section className="bg-[#fffaf0] px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-12 grid gap-6 lg:grid-cols-[0.7fr_1fr] lg:items-end">
+              <div>
+                <p className="landing-kicker">Core workflow</p>
+                <h2 className="mt-4 text-4xl font-black leading-tight text-[#22251f] sm:text-5xl">
+                  Move from "I applied somewhere" to "I know what happens next."
+                </h2>
               </div>
-
-              <h2 className="font-display text-4xl lg:text-5xl font-bold leading-tight">
-                Never Miss a Follow-Up Again
-              </h2>
-
-              <p className="text-xl text-brand-100 leading-relaxed">
-                Set reminders for any application and get email notifications
-                when they're due. Unlike spreadsheets, you won't lose track of
-                important follow-ups.
+              <p className="max-w-2xl text-lg leading-8 text-[#596154]">
+                Applyt keeps applications, reminders, and results in one
+                workflow, so your effort compounds instead of scattering across
+                tabs, notes, and calendar events.
               </p>
-
-              <div className="space-y-4 pt-4">
-                {[
-                  {
-                    title: "Email Notifications",
-                    description:
-                      "Get automatically notified when your reminders are due. Never forget to follow up.",
-                  },
-                  {
-                    title: "Flexible Scheduling",
-                    description:
-                      "Set reminders for any date and time. Perfect for tracking interviews, follow-ups, and deadlines.",
-                  },
-                  {
-                    title: "Simple Management",
-                    description:
-                      "View, edit, and mark reminders as complete. All your follow-ups organized in one place.",
-                  },
-                ].map((item, idx) => (
-                  <div key={idx} className="flex gap-4">
-                    <div className="flex-shrink-0 w-6 h-6 bg-success-DEFAULT rounded-full flex items-center justify-center mt-1">
-                      <CheckCircle className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-lg">{item.title}</h4>
-                      <p className="text-brand-100">{item.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Experiences - Visual Storytelling */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 space-y-4">
-            <h2 className="font-display text-4xl lg:text-5xl font-bold text-neutral-900">
-              Built for Job Seekers, Not Recruiters
-            </h2>
-            <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-              Every feature designed to help{" "}
-              <span className="font-semibold text-neutral-900">you</span> land
-              offers faster
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
-            {/* Kanban Feature */}
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 bg-brand-100 px-4 py-2 rounded-full">
-                <SquareKanban className="w-4 h-4 text-brand-600" />
-                <span className="text-sm font-semibold text-brand-700">
-                  Visual Pipeline
-                </span>
-              </div>
-
-              <h3 className="font-display text-3xl lg:text-4xl font-bold text-neutral-900">
-                See Your Progress at a Glance
-              </h3>
-
-              <p className="text-lg text-neutral-600 leading-relaxed">
-                Drag and drop applications through your pipeline. Instantly
-                visualize where you are in your job search journey. No more
-                hunting through spreadsheet tabs.
-              </p>
-
-              <ul className="space-y-3">
-                {[
-                  "Drag-and-drop to update status",
-                  "Customizable pipeline stages",
-                  "Quick-view application details",
-                  "Filter by company, role, or date",
-                ].map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-brand-100 rounded flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-3.5 h-3.5 text-brand-600" />
-                    </div>
-                    <span className="text-neutral-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
 
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-brand-500/10 to-accent-500/10 rounded-3xl blur-2xl" />
-              <div className="relative">
-                <KanbanPreview />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Analytics Feature */}
-            <div className="order-2 lg:order-1 relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-accent-500/10 to-brand-500/10 rounded-3xl blur-2xl" />
-              <div className="relative">
-                <AnalyticsPreview />
-              </div>
-            </div>
-
-            <div className="order-1 lg:order-2 space-y-6">
-              <div className="inline-flex items-center gap-2 bg-accent-100 px-4 py-2 rounded-full">
-                <BarChart3 className="w-4 h-4 text-accent-600" />
-                <span className="text-sm font-semibold text-accent-700">
-                  Smart Analytics
-                </span>
-              </div>
-
-              <h3 className="font-display text-3xl lg:text-4xl font-bold text-neutral-900">
-                Data That Helps You Improve
-              </h3>
-
-              <p className="text-lg text-neutral-600 leading-relaxed">
-                Understand your job search patterns. See which strategies work.
-                Track response rates, conversion metrics, and time-to-offer.
-                Make informed decisions about where to focus your energy.
-              </p>
-
-              <ul className="space-y-3">
-                {[
-                  "Application funnel visualization",
-                  "Response rate tracking by company/role",
-                  "Time-to-offer analytics",
-                  "Success pattern identification",
-                ].map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-accent-100 rounded flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-3.5 h-3.5 text-accent-600" />
-                    </div>
-                    <span className="text-neutral-700">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Additional Features Grid */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-neutral-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-3xl lg:text-4xl font-bold text-neutral-900 mb-4">
-              Everything You Need, Nothing You Don't
-            </h2>
-            <p className="text-lg text-neutral-600">
-              Focused features that actually matter for job seekers
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: FileText,
-                title: "Detailed Notes",
-                description:
-                  "Track contacts, interview questions, and company research in one place.",
-                iconBgClass: "bg-brand-100",
-                iconTextClass: "text-brand-600",
-              },
-              {
-                icon: Shield,
-                title: "Secure & Private",
-                description:
-                  "Your data is encrypted. We never share your information with anyone.",
-                iconBgClass: "bg-accent-100",
-                iconTextClass: "text-accent-600",
-              },
-              {
-                icon: Zap,
-                title: "Bulk Import",
-                description:
-                  "Import existing applications from CSV. Get started in minutes, not hours.",
-                iconBgClass: "bg-success-light",
-                iconTextClass: "text-success-dark",
-              },
-            ].map((feature, idx) => {
-              const Icon = feature.icon;
-              return (
-                <div
-                  key={idx}
-                  className="group bg-white rounded-2xl shadow-soft hover:shadow-soft-xl p-8 transition-all duration-300 hover:-translate-y-1 border border-neutral-200"
-                >
-                  <div
-                    className={`inline-flex items-center justify-center w-14 h-14 ${feature.iconBgClass} rounded-xl mb-6 group-hover:scale-110 transition-transform`}
-                  >
-                    <Icon className={`w-7 h-7 ${feature.iconTextClass}`} />
-                  </div>
-                  <h3 className="text-xl font-bold text-neutral-900 mb-3">
-                    {feature.title}
+            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="landing-card p-4 sm:p-6">
+                <div className="mb-4 flex items-center gap-3">
+                  <SquareKanban className="h-5 w-5 text-[#4b7f52]" />
+                  <h3 className="text-xl font-black text-[#22251f]">
+                    Visual pipeline
                   </h3>
-                  <p className="text-neutral-600 leading-relaxed">
-                    {feature.description}
-                  </p>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-brand-600 to-accent-600 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/5" />
-
-        <div className="max-w-4xl mx-auto text-center relative space-y-8">
-          <h2 className="font-display text-4xl lg:text-5xl font-bold text-white leading-tight">
-            Ready to Take Control of Your Job Search?
-          </h2>
-          <p className="text-xl text-brand-100 max-w-2xl mx-auto">
-            Join hundreds of job seekers who've organized their search with
-            Applyt. Free forever, no credit card required.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/signup"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-brand-600 font-bold rounded-xl shadow-elevation-3 hover:shadow-elevation-4 hover:-translate-y-0.5 transition-all duration-200"
-            >
-              Get Started Free
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Link>
-            <Link
-              to="/features"
-              className="inline-flex items-center justify-center px-8 py-4 bg-transparent text-white font-semibold rounded-xl border-2 border-white/30 hover:bg-white/10 transition-all duration-200"
-            >
-              See All Features
-            </Link>
-          </div>
-
-          {/* Trust Indicators */}
-          <div className="pt-8 flex flex-wrap items-center justify-center gap-8 text-white/90">
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5" />
-              <span className="text-sm font-medium">Bank-Level Security</span>
+                <KanbanPreview />
+              </div>
+              <div className="grid gap-6">
+                <div className="landing-card p-5">
+                  <div className="mb-4 flex items-center gap-3">
+                    <BarChart3 className="h-5 w-5 text-[#8a6421]" />
+                    <h3 className="text-xl font-black text-[#22251f]">
+                      Search analytics
+                    </h3>
+                  </div>
+                  <AnalyticsPreview />
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5" />
-              <span className="text-sm font-medium">Always Free</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              <span className="text-sm font-medium">No Credit Card</span>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              {featureCards.map((feature) => {
+                const Icon = feature.icon;
+                return (
+                  <motion.div
+                    key={feature.title}
+                    whileHover={reduceMotion ? undefined : { transform: "translateY(-4px)" }}
+                    whileTap={{ scale: 0.98 }}
+                    className="landing-card p-6"
+                  >
+                    <Icon className="mb-5 h-6 w-6 text-[#4b7f52]" strokeWidth={1.8} />
+                    <h3 className="text-xl font-black text-[#22251f]">
+                      {feature.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-6 text-[#596154]">
+                      {feature.description}
+                    </p>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="bg-neutral-900 text-neutral-400 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div className="md:col-span-2">
-              <h3 className="font-display text-2xl font-bold text-white mb-4">
-                Applyt
-              </h3>
-              <p className="text-neutral-400 max-w-md">
-                The smart way to track job applications, manage interviews, and
-                land your dream job.
+        <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-center">
+            <div>
+              <p className="landing-kicker">Ready when you are</p>
+              <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight text-[#22251f] sm:text-6xl">
+                Give your job search a system before the next role opens.
+              </h2>
+            </div>
+            <div className="landing-card p-6">
+              <p className="text-lg leading-8 text-[#596154]">
+                Start with a clean board, add the roles you care about, and let
+                reminders keep the follow-ups from slipping.
               </p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-white mb-4">Product</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    to="/features"
-                    className="hover:text-white transition-colors"
-                  >
-                    Features
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/about"
-                    className="hover:text-white transition-colors"
-                  >
-                    About
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-white mb-4">Legal</h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    to="/privacy-policy"
-                    className="hover:text-white transition-colors"
-                  >
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/terms-of-service"
-                    className="hover:text-white transition-colors"
-                  >
-                    Terms of Service
-                  </Link>
-                </li>
-              </ul>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  to="/signup"
+                  className="landing-button inline-flex min-h-12 items-center justify-center gap-3 bg-[#22251f] px-6 py-3 text-sm font-bold text-[#fffaf0]"
+                >
+                  Create free account
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/about"
+                  className="landing-button inline-flex min-h-12 items-center justify-center gap-3 border border-[#22251f]/20 px-6 py-3 text-sm font-bold text-[#22251f]"
+                >
+                  Why Applyt
+                </Link>
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3 text-xs font-bold uppercase tracking-[0.14em] text-[#596154]">
+                <span className="inline-flex items-center gap-2">
+                  <LockKeyhole className="h-4 w-4" /> Private
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" /> Free to start
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <Shield className="h-4 w-4" /> No recruiter marketplace
+                </span>
+              </div>
             </div>
           </div>
-
-          <div className="border-t border-neutral-800 pt-8 text-center text-sm">
-            <p>&copy; 2026 Applyt. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+        </section>
+      </main>
     </div>
   );
 }

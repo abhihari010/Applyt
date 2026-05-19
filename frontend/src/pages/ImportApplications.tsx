@@ -8,8 +8,8 @@ import {
   CheckCircle,
   X,
 } from "lucide-react";
-import Nav from "../components/Nav";
 import api from "../api";
+import { AppShell, PageHeader } from "../components/AppShell";
 
 interface ImportResult {
   successCount: number;
@@ -92,29 +92,26 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
   };
 
   return (
-    <>
-      <Nav />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Import Applications</h1>
-          <p className="text-gray-600">
-            Upload a CSV file to bulk import your job applications
-          </p>
-        </div>
+    <AppShell maxWidth="4xl">
+        <PageHeader
+          eyebrow="Bulk capture"
+          title="Import Applications"
+          description="Upload a CSV to bring your existing search history into the cockpit."
+        />
 
         {/* Instructions Card */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold text-blue-900 mb-3 flex items-center">
+        <div className="surface mb-6 p-6">
+          <h2 className="mb-3 flex items-center text-lg font-semibold text-neutral-950">
             <FileText className="w-5 h-5 mr-2" />
             CSV Format Requirements
           </h2>
 
           <div className="space-y-4 text-sm">
             <div>
-              <h3 className="font-semibold text-blue-900 mb-2">
+              <h3 className="mb-2 font-semibold text-brand-900">
                 Required Headers:
               </h3>
-              <ul className="list-disc list-inside space-y-1 text-blue-800">
+              <ul className="list-inside list-disc space-y-1 text-neutral-700">
                 <li>
                   <strong>company</strong> - Company name
                 </li>
@@ -126,10 +123,10 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
             </div>
 
             <div>
-              <h3 className="font-semibold text-blue-900 mb-2">
+              <h3 className="mb-2 font-semibold text-brand-900">
                 Optional Headers:
               </h3>
-              <ul className="list-disc list-inside space-y-1 text-blue-800">
+              <ul className="list-inside list-disc space-y-1 text-neutral-700">
                 <li>
                   <strong>location</strong> - Job location (also accepts: city,
                   loc)
@@ -164,8 +161,8 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
               </ul>
             </div>
 
-            <div className="pt-2 border-t border-blue-200">
-              <p className="text-blue-800">
+            <div className="border-t border-neutral-200 pt-2">
+              <p className="text-neutral-700">
                 <strong>Note:</strong> Headers are case-insensitive. If
                 date_applied is not provided, the current date will be used. If
                 status is not provided, it defaults to APPLIED. If priority is
@@ -176,7 +173,7 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
 
           <button
             onClick={downloadTemplate}
-            className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
+            className="btn-secondary mt-4"
           >
             <Download className="w-4 h-4 mr-2" />
             Download Template CSV
@@ -184,20 +181,20 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
         </div>
 
         {/* Upload Section */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="surface mb-6 p-6">
           <h2 className="text-xl font-semibold mb-4">Upload CSV File</h2>
 
           <div className="space-y-4">
             <div>
               <label
                 htmlFor="csv-upload"
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                className="flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50/60 transition-colors hover:border-brand-500 hover:bg-brand-50"
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="w-10 h-10 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600">
+                  <Upload className="mb-2 h-10 w-10 text-brand-700" />
+                  <p className="text-sm text-neutral-600">
                     {file ? (
-                      <span className="font-medium text-blue-600">
+                        <span className="font-semibold text-brand-700">
                         {file.name}
                       </span>
                     ) : (
@@ -207,7 +204,7 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
                       </>
                     )}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="mt-1 text-xs text-neutral-500">
                     CSV file (max 5MB)
                   </p>
                 </div>
@@ -222,9 +219,9 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
             </div>
 
             {file && (
-              <div className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
+              <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 p-3">
                 <div className="flex items-center">
-                  <FileText className="w-5 h-5 text-blue-600 mr-2" />
+                  <FileText className="w-5 h-5 text-brand-700 mr-2" />
                   <span className="text-sm font-medium">{file.name}</span>
                   <span className="text-xs text-gray-500 ml-2">
                     ({(file.size / 1024).toFixed(1)} KB)
@@ -236,7 +233,7 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
                     setError(null);
                     setResult(null);
                   }}
-                  className="text-gray-500 hover:text-red-600"
+                  className="icon-button text-neutral-500 hover:text-red-700"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -246,7 +243,7 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
             <button
               onClick={handleImport}
               disabled={!file || importing}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium cursor-pointer"
+              className="btn-primary w-full"
             >
               {importing ? "Importing..." : "Import Applications"}
             </button>
@@ -255,7 +252,7 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
             <div className="flex items-start">
               <AlertCircle className="w-5 h-5 text-red-600 mr-2 mt-0.5" />
               <div>
@@ -270,26 +267,26 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
         {result && (
           <div className="space-y-4">
             {/* Summary */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="surface p-6">
               <h2 className="text-xl font-semibold mb-4 flex items-center">
                 <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
                 Import Summary
               </h2>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">
+                  <div className="metric-value text-green-700">
                     {result.successCount}
                   </div>
                   <div className="text-sm text-gray-600">Successful</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-red-600">
+                  <div className="metric-value text-red-700">
                     {result.errorCount}
                   </div>
                   <div className="text-sm text-gray-600">Failed</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">
+                  <div className="metric-value text-brand-700">
                     {result.totalProcessed}
                   </div>
                   <div className="text-sm text-gray-600">Total Rows</div>
@@ -299,7 +296,7 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
               {result.successCount > 0 && (
                 <button
                   onClick={() => navigate("/applications")}
-                  className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="btn-primary mt-4 w-full"
                 >
                   View Applications
                 </button>
@@ -308,7 +305,7 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
 
             {/* Errors */}
             {result.errors && result.errors.length > 0 && (
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="surface p-6">
                 <h3 className="text-lg font-semibold text-red-900 mb-3">
                   Import Errors ({result.errors.length})
                 </h3>
@@ -329,7 +326,6 @@ Amazon,Data Scientist,Remote,2024-01-25,REJECTED,LOW,https://amazon.jobs/en/jobs
             )}
           </div>
         )}
-      </div>
-    </>
+    </AppShell>
   );
 }

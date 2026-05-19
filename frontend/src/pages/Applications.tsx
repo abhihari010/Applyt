@@ -9,14 +9,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Upload,
+  Archive,
 } from "lucide-react";
 import api, { Application } from "../api";
-import Nav from "../components/Nav";
 import ApplicationCard from "../components/ApplicationCard";
-import StatusBadge from "../components/StatusBadge";
-import PriorityBadge from "../components/PriorityBadge";
 import { useAuth } from "../hooks/useAuth";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { AppShell, EmptyState, PageHeader, PageLoader } from "../components/AppShell";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -132,44 +131,41 @@ export default function Applications() {
   };
 
   if (isLoading) {
-    return (
-      <div>
-        <Nav />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-gray-600">Loading...</div>
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading applications" />;
   }
 
+  const hasActiveFilters =
+    Boolean(searchQuery) || statusFilter !== "ALL" || priorityFilter !== "ALL";
+
   return (
-    <div>
-      <Nav />
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Applications</h1>
-            <div className="flex gap-3">
+    <AppShell>
+      <PageHeader
+        eyebrow="Tracked roles"
+        title="Applications"
+        description="Search, filter, and inspect every opportunity without losing your place."
+        metric={`${filteredApplications.length} visible`}
+        actions={
+          <>
               <button
                 onClick={() => navigate("/applications/import")}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+                className="btn-secondary"
               >
                 <Upload className="h-4 w-4" />
                 Import CSV
               </button>
               <button
                 onClick={() => navigate("/applications/new")}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2"
+                className="btn-primary"
               >
                 <Plus className="h-4 w-4" />
                 New Application
               </button>
-            </div>
-          </div>
+          </>
+        }
+      />
 
           {/* Filters */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="surface mb-6 p-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Search */}
               <div className="relative">
@@ -182,7 +178,7 @@ export default function Applications() {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="field pl-10"
                 />
               </div>
 
@@ -195,7 +191,7 @@ export default function Applications() {
                     setStatusFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+                  className="field pl-10 appearance-none"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="SAVED">Saved</option>
@@ -216,7 +212,7 @@ export default function Applications() {
                     setPriorityFilter(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+                  className="field pl-10 appearance-none"
                 >
                   <option value="ALL">All Priorities</option>
                   <option value="LOW">Low</option>
@@ -227,7 +223,7 @@ export default function Applications() {
             </div>
 
             {/* Results count */}
-            <div className="mt-3 text-sm text-gray-600">
+            <div className="mt-3 font-mono text-sm text-neutral-600">
               Showing {paginatedApplications.length} of{" "}
               {filteredApplications.length} applications
             </div>
@@ -235,29 +231,49 @@ export default function Applications() {
 
           {/* Applications Grid */}
           {paginatedApplications.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-              <p className="text-gray-500">No applications found</p>
-              {(searchQuery ||
+            <EmptyState
+              icon={Archive}
+              title="No applications found"
+              description={
+                searchQuery ||
                 statusFilter !== "ALL" ||
-                priorityFilter !== "ALL") && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setStatusFilter("ALL");
-                    setPriorityFilter("ALL");
-                    setCurrentPage(1);
-                  }}
-                  className="mt-4 text-indigo-600 hover:underline"
-                >
-                  Clear filters
-                </button>
-              )}
-            </div>
+                priorityFilter !== "ALL"
+                  ? "The current filters are hiding everything. Clear them to get back to your full pipeline."
+                  : "Add your first application or import a CSV to start building your search cockpit."
+              }
+              action={
+                hasActiveFilters ? (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("ALL");
+                      setPriorityFilter("ALL");
+                      setCurrentPage(1);
+                    }}
+                    className="btn-secondary"
+                  >
+                    Clear filters
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate("/applications/new")}
+                    className="btn-primary"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add application
+                  </button>
+                )
+              }
+            />
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedApplications.map((application: Application) => (
-                  <div key={application.id} className="relative group">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {paginatedApplications.map((application: Application, index) => (
+                  <div
+                    key={application.id}
+                    className="group relative animate-stagger-in"
+                    style={{ "--stagger": index } as React.CSSProperties}
+                  >
                     <ApplicationCard
                       application={application}
                       onClick={() =>
@@ -266,7 +282,8 @@ export default function Applications() {
                     />
                     <button
                       onClick={(e) => handleDelete(application.id, e)}
-                      className="absolute top-2 right-2 p-2 bg-white rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity text-red-600 hover:bg-red-50"
+                      className="icon-button absolute right-2 top-2 min-h-9 min-w-9 bg-white text-red-700 opacity-0 shadow-soft transition-opacity group-hover:opacity-100 focus:opacity-100"
+                      aria-label={`Delete ${application.role} at ${application.company}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -276,11 +293,12 @@ export default function Applications() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-8">
+                <div className="mt-8 flex items-center justify-center gap-2">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="icon-button border-neutral-300 bg-white"
+                    aria-label="Previous page"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </button>
@@ -293,8 +311,8 @@ export default function Applications() {
                           onClick={() => handlePageChange(page)}
                           className={`px-4 py-2 rounded-lg ${
                             currentPage === page
-                              ? "bg-indigo-600 text-white"
-                              : "border border-gray-300 hover:bg-gray-50"
+                              ? "bg-brand-700 text-white"
+                              : "border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100"
                           }`}
                         >
                           {page}
@@ -306,7 +324,8 @@ export default function Applications() {
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="icon-button border-neutral-300 bg-white"
+                    aria-label="Next page"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </button>
@@ -314,9 +333,6 @@ export default function Applications() {
               )}
             </>
           )}
-        </div>
-      </div>
-
       <ConfirmDeleteModal
         isOpen={deleteModalOpen}
         onClose={() => {
@@ -332,6 +348,6 @@ export default function Applications() {
             : ""
         }
       />
-    </div>
+    </AppShell>
   );
 }

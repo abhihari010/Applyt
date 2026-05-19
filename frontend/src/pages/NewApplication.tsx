@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient, { OpenJob } from "../api";
-import Nav from "../components/Nav";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ImportJobModal, {
@@ -11,6 +10,7 @@ import ImportJobModal, {
 } from "../components/ImportJobModal";
 import { Link as LinkIcon, AlertCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { AppShell, PageHeader } from "../components/AppShell";
 type FormState = {
   company: string;
   role: string;
@@ -52,9 +52,10 @@ export default function NewApplication() {
       const res = await apiClient.post("/apps", payload);
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (created) => {
       qc.invalidateQueries({ queryKey: ["apps"] });
-      navigate("/");
+      qc.invalidateQueries({ queryKey: ["applications"] });
+      navigate(created?.id ? `/applications/${created.id}` : "/applications");
     },
   });
 
@@ -91,34 +92,35 @@ export default function NewApplication() {
   };
 
   return (
-    <>
-      <Nav />
+    <AppShell maxWidth="4xl">
       <ImportJobModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImportSuccess={handleImportSuccess}
       />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              New Application
-            </h2>
+      <PageHeader
+        eyebrow="Capture"
+        title="New Application"
+        description="Save the essentials now. You can enrich notes, contacts, reminders, and attachments later."
+        actions={
             <button
               type="button"
               onClick={() => setIsImportModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 cursor-pointer"
+              className="btn-secondary"
             >
               <LinkIcon className="w-4 h-4" />
               Import from URL
             </button>
-          </div>
+        }
+      />
+
+        <div className="surface p-5 sm:p-8">
 
           {importedData && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mb-6 rounded-lg border border-brand-200 bg-brand-50 p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-blue-900">
+                  <p className="text-sm font-semibold text-brand-900">
                     Auto-imported from URL
                   </p>
                   <ConfidenceBadge confidence={importedData.confidence} />
@@ -137,13 +139,16 @@ export default function NewApplication() {
                   ))}
                 </div>
               )}
-              <p className="text-xs text-blue-700 mt-2">
+              <p className="mt-2 text-xs text-brand-700">
                 Review and edit the fields below before saving
               </p>
             </div>
           )}
-          <form onSubmit={submit} className="space-y-4">
+          <form onSubmit={submit} className="grid gap-4">
             <div>
+              <label className="mb-1 block text-sm font-semibold text-neutral-700">
+                Company
+              </label>
               <input
                 value={form.company}
                 onChange={(e) => {
@@ -151,8 +156,8 @@ export default function NewApplication() {
                   if (errors.company) setErrors({ ...errors, company: "" });
                 }}
                 placeholder="Company"
-                className={`w-full p-2 border rounded mb-2 ${
-                  errors.company ? "border-red-500" : "border-gray-300"
+                className={`field ${
+                  errors.company ? "border-red-500 focus:ring-red-500/20" : ""
                 }`}
                 required
               />
@@ -162,6 +167,9 @@ export default function NewApplication() {
             </div>
 
             <div>
+              <label className="mb-1 block text-sm font-semibold text-neutral-700">
+                Role
+              </label>
               <input
                 value={form.role}
                 onChange={(e) => {
@@ -169,8 +177,8 @@ export default function NewApplication() {
                   if (errors.role) setErrors({ ...errors, role: "" });
                 }}
                 placeholder="Role"
-                className={`w-full p-2 border rounded mb-2 ${
-                  errors.role ? "border-red-500" : "border-gray-300"
+                className={`field ${
+                  errors.role ? "border-red-500 focus:ring-red-500/20" : ""
                 }`}
                 required
               />
@@ -178,43 +186,53 @@ export default function NewApplication() {
                 <p className="text-red-600 text-sm">{errors.role}</p>
               )}
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-neutral-700">
+                Location
+              </label>
             <input
               value={form.location || ""}
               onChange={(e) => setForm({ ...form, location: e.target.value })}
               placeholder="Location"
-              className="w-full p-2 border rounded mb-2"
+              className="field"
             />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-neutral-700">
+                Job URL
+              </label>
             <input
               value={form.jobUrl || ""}
               onChange={(e) => setForm({ ...form, jobUrl: e.target.value })}
               placeholder="Job URL"
-              className="w-full p-2 border rounded mb-2"
+              className="field"
             />
-            <div className="grid grid-cols-2 gap-4 mb-2">
-              <div className="flex items-center gap-2">
-                <label className="font-medium text-gray-700 whitespace-nowrap">
-                  Priority:
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+                  Priority
                 </label>
                 <select
                   value={form.priority}
                   onChange={(e) =>
                     setForm({ ...form, priority: e.target.value as any })
                   }
-                  className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="field"
                 >
                   <option value="LOW">Low</option>
                   <option value="MEDIUM">Med</option>
                   <option value="HIGH">High</option>
                 </select>
               </div>
-              <div className="flex items-center gap-2">
-                <label className="font-medium text-gray-700 whitespace-nowrap">
-                  Status:
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-neutral-700">
+                  Status
                 </label>
                 <select
                   value={form.status}
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="field"
                 >
                   <option value="SAVED">Saved</option>
                   <option value="APPLIED">Applied</option>
@@ -225,9 +243,9 @@ export default function NewApplication() {
                 </select>
               </div>
             </div>
-            <div className="flex items-center gap-2 mb-2">
-              <label className="font-medium text-gray-700 whitespace-nowrap">
-                Date Applied:
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-neutral-700">
+                Date Applied
               </label>
               <DatePicker
                 selected={form.dateApplied ? new Date(form.dateApplied) : null}
@@ -238,28 +256,27 @@ export default function NewApplication() {
                   });
                 }}
                 dateFormat="MMM d, yyyy"
-                className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="field"
                 placeholderText="Select date"
-                wrapperClassName="flex-1"
+                wrapperClassName="w-full"
               />
             </div>
             <div className="flex items-center gap-2 pt-2">
               <button
                 type="submit"
                 disabled={createMut.isPending}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                className="btn-primary"
               >
                 {createMut.isPending ? "Creating..." : "Create Application"}
               </button>
             </div>
             {createMut.isError && (
-              <div className="mt-2 text-red-600 bg-red-50 p-3 rounded-lg">
+              <div className="mt-2 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">
                 Error creating application
               </div>
             )}
           </form>
         </div>
-      </div>
-    </>
+    </AppShell>
   );
 }

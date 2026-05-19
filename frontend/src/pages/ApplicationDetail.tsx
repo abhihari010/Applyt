@@ -15,7 +15,6 @@ import {
   Activity,
 } from "lucide-react";
 import api, { Application, applicationsApi } from "../api";
-import Nav from "../components/Nav";
 import StatusBadge from "../components/StatusBadge";
 import PriorityBadge from "../components/PriorityBadge";
 import DetailsTab from "../components/tabs/DetailsTab";
@@ -25,6 +24,7 @@ import RemindersTab from "../components/tabs/RemindersTab";
 import AttachmentsTab from "../components/tabs/AttachmentsTab";
 import ActivityTab from "../components/tabs/ActivityTab";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { AppShell, EmptyState, PageLoader } from "../components/AppShell";
 
 type Tab =
   | "details"
@@ -179,24 +179,18 @@ export default function ApplicationDetail() {
   };
 
   if (isLoading) {
-    return (
-      <div>
-        <Nav />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-gray-600">Loading...</div>
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading application" />;
   }
 
   if (!application) {
     return (
-      <div>
-        <Nav />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-gray-600">Application not found</div>
-        </div>
-      </div>
+      <AppShell maxWidth="6xl">
+        <EmptyState
+          icon={FileText}
+          title="Application not found"
+          description="This application may have been deleted or moved."
+        />
+      </AppShell>
     );
   }
 
@@ -210,13 +204,10 @@ export default function ApplicationDetail() {
   ];
 
   return (
-    <div>
-      <Nav />
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <AppShell maxWidth="6xl">
           {/* Header */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-start justify-between">
+          <div className="surface mb-6 p-5 sm:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex-1">
                 {isEditing ? (
                   <div className="space-y-4">
@@ -229,7 +220,7 @@ export default function ApplicationDetail() {
                           role: e.target.value,
                         })
                       }
-                      className="text-2xl font-bold text-gray-900 border-b-2 border-indigo-500 focus:outline-none w-full"
+                      className="field text-2xl font-bold"
                     />
                     <input
                       type="text"
@@ -240,16 +231,17 @@ export default function ApplicationDetail() {
                           company: e.target.value,
                         })
                       }
-                      className="text-lg text-gray-600 border-b border-gray-300 focus:outline-none w-full "
+                      className="field text-lg"
                     />
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <p className="kicker mb-2">Application detail</p>
+                    <h1 className="text-3xl font-bold text-neutral-950">
                       {application.role}
                     </h1>
-                    <div className="flex items-center gap-2 mt-2 text-lg text-gray-600">
-                      <Building2 className="h-5 w-5" />
+                    <div className="mt-2 flex items-center gap-2 text-lg text-neutral-600">
+                      <Building2 className="h-5 w-5 text-brand-700" />
                       <span>{application.company}</span>
                     </div>
                   </>
@@ -263,7 +255,7 @@ export default function ApplicationDetail() {
                         onChange={(e) =>
                           setEditForm({ ...editForm, status: e.target.value })
                         }
-                        className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="field"
                       >
                         {STATUSES.map((status) => (
                           <option key={status.id} value={status.id}>
@@ -276,7 +268,7 @@ export default function ApplicationDetail() {
                         onChange={(e) =>
                           setEditForm({ ...editForm, priority: e.target.value })
                         }
-                        className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="field"
                       >
                         <option value="LOW">Low</option>
                         <option value="MEDIUM">Medium</option>
@@ -293,20 +285,20 @@ export default function ApplicationDetail() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {isEditing ? (
                   <>
                     <button
                       onClick={handleSave}
                       disabled={updateMutation.isPending}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer"
+                      className="btn-primary"
                     >
                       <Save className="h-4 w-4" />
                       Save
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center gap-2 cursor-pointer"
+                      className="btn-secondary"
                     >
                       <X className="h-4 w-4" />
                       Cancel
@@ -316,7 +308,7 @@ export default function ApplicationDetail() {
                   <>
                     <button
                       onClick={handleEdit}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-2 cursor-pointer"
+                      className="btn-primary"
                     >
                       <Edit className="h-4 w-4" />
                       Edit
@@ -324,7 +316,7 @@ export default function ApplicationDetail() {
                     <button
                       onClick={(e) => handleDelete(e, application)}
                       disabled={deleteMutation.isPending}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 cursor-pointer"
+                      className="btn-danger"
                     >
                       <Trash2 className="h-4 w-4" />
                       Delete
@@ -336,17 +328,17 @@ export default function ApplicationDetail() {
           </div>
 
           {/* Tabs */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 ">
-            <div className="border-b border-gray-200 ">
-              <nav className="flex -mb-px ">
+          <div className="surface overflow-hidden">
+            <div className="border-b border-neutral-200">
+              <nav className="flex overflow-x-auto p-1">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 cursor-pointer ${
+                    className={`applet-button flex min-h-11 items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold ${
                       activeTab === tab.id
-                        ? "border-indigo-500 text-indigo-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "bg-brand-700 text-white"
+                        : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
                     }`}
                   >
                     <tab.icon className="h-4 w-4" />
@@ -356,7 +348,7 @@ export default function ApplicationDetail() {
               </nav>
             </div>
 
-            <div className="p-6">
+            <div className="p-5 sm:p-6">
               {activeTab === "details" && (
                 <DetailsTab
                   application={application}
@@ -384,8 +376,6 @@ export default function ApplicationDetail() {
               )}
             </div>
           </div>
-        </div>
-      </div>
       <ConfirmDeleteModal
         isOpen={deleteModalOpen}
         onClose={() => {
@@ -401,6 +391,6 @@ export default function ApplicationDetail() {
             : ""
         }
       />
-    </div>
+    </AppShell>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   LayoutDashboard,
   FileText,
@@ -11,6 +12,7 @@ import {
   X,
   SquareKanban,
   Briefcase,
+  Settings,
 } from "lucide-react";
 
 export default function Nav() {
@@ -26,6 +28,13 @@ export default function Nav() {
   const handleNavClick = () => {
     setMobileMenuOpen(false);
   };
+
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `applet-button inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${
+      isActive
+        ? "bg-neutral-900 text-white shadow-soft"
+        : "text-neutral-700 hover:bg-white/70 hover:text-neutral-950"
+    }`;
 
   const navItems = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -45,28 +54,31 @@ export default function Nav() {
     ];
 
     return (
-      <nav className="bg-white/80 backdrop-blur-md shadow-soft border-b border-neutral-200 sticky top-0 z-50">
+      <nav className="sticky top-0 z-40 border-b border-neutral-900/10 bg-neutral-50/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+          <div className="flex justify-between min-h-16">
             <div className="flex">
               <div className="shrink-0 flex items-center">
                 <Link
                   to="/"
-                  className="font-display text-2xl font-bold gradient-text"
+                  className="applet-button inline-flex items-center rounded-full pr-3 font-display text-xl font-extrabold tracking-tight text-neutral-950"
                 >
+                  <span className="mr-2 grid h-8 w-8 place-items-center rounded-full bg-brand-700 text-sm text-white shadow-glow">
+                    A
+                  </span>
                   Applyt
                 </Link>
               </div>
               {/* Desktop Navigation */}
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-2">
+              <div className="hidden sm:ml-8 sm:flex sm:items-center sm:gap-1">
                 {publicNavItems.map((item) => (
-                  <Link
+                  <NavLink
                     key={item.to}
                     to={item.to}
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all duration-200"
+                    className={linkClass}
                   >
                     {item.label}
-                  </Link>
+                  </NavLink>
                 ))}
               </div>
             </div>
@@ -75,9 +87,9 @@ export default function Nav() {
             <div className="hidden sm:flex items-center space-x-4">
               <Link
                 to="/signup"
-                className="inline-flex items-center px-6 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 hover:shadow-elevation-2 hover:-translate-y-0.5 transition-all duration-200"
+                className="applet-button inline-flex items-center rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-bold text-white shadow-soft-lg hover:bg-brand-700"
               >
-                Get Started
+                Start tracking
               </Link>
             </div>
 
@@ -85,7 +97,8 @@ export default function Nav() {
             <div className="flex items-center sm:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-lg text-neutral-700 hover:text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500"
+                className="applet-button inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-neutral-800 hover:bg-white"
+                aria-expanded={mobileMenuOpen}
               >
                 <span className="sr-only">Open main menu</span>
                 {mobileMenuOpen ? (
@@ -98,62 +111,73 @@ export default function Nav() {
           </div>
 
           {/* Mobile menu */}
-          {mobileMenuOpen && (
-            <div className="sm:hidden">
-              <div className="pt-2 pb-3 space-y-1 border-t border-neutral-200">
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                className="sm:hidden"
+                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+              >
+              <div className="space-y-1 border-t border-neutral-900/10 py-3">
                 {publicNavItems.map((item) => (
                   <Link
                     key={item.to}
                     to={item.to}
                     onClick={handleNavClick}
-                    className="block px-4 py-3 text-base font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 transition-colors rounded-lg"
+                    className="applet-button block rounded-2xl px-4 py-3 text-base font-semibold text-neutral-800 hover:bg-white"
                   >
                     {item.label}
                   </Link>
                 ))}
               </div>
-              <div className="pt-4 pb-3 border-t border-neutral-200">
+              <div className="border-t border-neutral-900/10 pb-3 pt-4">
                 <Link
                   to="/signup"
                   onClick={handleNavClick}
-                  className="block px-4 py-3 text-base font-medium text-white bg-brand-600 hover:bg-brand-700 transition-colors rounded-lg text-center"
+                  className="applet-button block rounded-2xl bg-neutral-900 px-4 py-3 text-center text-base font-bold text-white hover:bg-brand-700"
                 >
-                  Get Started
+                  Start tracking
                 </Link>
               </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </nav>
     );
   }
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md shadow-soft border-b border-neutral-200 sticky top-0 z-50">
+    <nav className="sticky top-0 z-40 border-b border-neutral-900/10 bg-neutral-50/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between min-h-16">
           <div className="flex">
             <div className="shrink-0 flex items-center">
               <Link
                 to="/dashboard"
-                className="font-display text-2xl font-bold gradient-text"
+                className="applet-button inline-flex items-center rounded-full pr-3 font-display text-xl font-extrabold tracking-tight text-neutral-950"
               >
+                <span className="mr-2 grid h-8 w-8 place-items-center rounded-full bg-brand-700 text-sm text-white shadow-glow">
+                  A
+                </span>
                 Applyt
               </Link>
             </div>
             {/* Desktop Navigation */}
-            <div className="hidden sm:ml-8 sm:flex sm:space-x-2">
+            <div className="hidden sm:ml-8 sm:flex sm:items-center sm:gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <Link
+                  <NavLink
                     key={item.to}
                     to={item.to}
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all duration-200"
+                    className={linkClass}
                   >
                     <Icon className="w-4 h-4 mr-2" />
                     {item.label}
-                  </Link>
+                  </NavLink>
                 );
               })}
             </div>
@@ -163,7 +187,7 @@ export default function Nav() {
           <div className="hidden sm:flex items-center space-x-4">
             <Link
               to="/applications/new"
-              className="inline-flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 hover:shadow-elevation-2 hover:-translate-y-0.5 transition-all duration-200"
+              className="applet-button inline-flex items-center rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-bold text-white shadow-soft-lg hover:bg-brand-700"
             >
               <Plus className="w-4 h-4 mr-2" />
               New Application
@@ -171,15 +195,16 @@ export default function Nav() {
             <div className="flex items-center space-x-3">
               <Link
                 to="/settings"
-                className="text-sm font-medium text-neutral-700 hover:text-brand-600 transition-colors"
+                className="applet-button inline-flex items-center rounded-full px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-white hover:text-neutral-950"
               >
+                <Settings className="mr-2 h-4 w-4" />
                 {user?.name}
               </Link>
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center px-3 py-2 text-sm font-medium text-neutral-700 hover:text-error-dark hover:bg-error-light rounded-lg transition-all duration-200"
+                className="applet-button inline-flex items-center rounded-full px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-error-light hover:text-error-dark"
               >
-                <LogOut className="w-4 h-4 mr-1 cursor-pointer" />
+                <LogOut className="w-4 h-4 mr-1" />
                 Logout
               </button>
             </div>
@@ -189,7 +214,8 @@ export default function Nav() {
           <div className="flex items-center sm:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-lg text-neutral-700 hover:text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500"
+              className="applet-button inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-neutral-800 hover:bg-white"
+              aria-expanded={mobileMenuOpen}
             >
               <span className="sr-only">Open main menu</span>
               {mobileMenuOpen ? (
@@ -202,9 +228,16 @@ export default function Nav() {
         </div>
       </div>
 
-      {mobileMenuOpen && (
-        <div className="sm:hidden">
-          <div className="pt-2 pb-3 space-y-1 border-t border-neutral-200">
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            className="sm:hidden"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+          >
+          <div className="space-y-1 border-t border-neutral-900/10 px-4 py-3">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -212,7 +245,7 @@ export default function Nav() {
                   key={item.to}
                   to={item.to}
                   onClick={handleNavClick}
-                  className="flex items-center px-4 py-3 text-base font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 transition-colors rounded-lg"
+                  className="applet-button flex items-center rounded-2xl px-4 py-3 text-base font-semibold text-neutral-800 hover:bg-white"
                 >
                   <Icon className="w-5 h-5 mr-3" />
                   {item.label}
@@ -220,7 +253,7 @@ export default function Nav() {
               );
             })}
           </div>
-          <div className="pt-4 pb-3 border-t border-neutral-200">
+          <div className="border-t border-neutral-900/10 px-4 pb-3 pt-4">
             <div className="flex items-center px-4 mb-3">
               <div className="text-base font-medium text-neutral-800">
                 {user?.name}
@@ -230,7 +263,7 @@ export default function Nav() {
               <Link
                 to="/applications/new"
                 onClick={handleNavClick}
-                className="flex items-center px-4 py-3 text-base font-medium text-white bg-brand-600 hover:bg-brand-700 transition-colors rounded-lg"
+                className="applet-button flex items-center rounded-2xl bg-neutral-900 px-4 py-3 text-base font-bold text-white hover:bg-brand-700"
               >
                 <Plus className="w-5 h-5 mr-3" />
                 New Application
@@ -238,7 +271,7 @@ export default function Nav() {
               <Link
                 to="/settings"
                 onClick={handleNavClick}
-                className="block px-4 py-3 text-base font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 transition-colors rounded-lg"
+                className="applet-button block rounded-2xl px-4 py-3 text-base font-semibold text-neutral-800 hover:bg-white"
               >
                 Settings
               </Link>
@@ -247,15 +280,16 @@ export default function Nav() {
                   handleNavClick();
                   handleLogout();
                 }}
-                className="flex items-center w-full px-4 py-3 text-base font-medium text-error-dark hover:bg-error-light transition-colors rounded-lg"
+                className="applet-button flex w-full items-center rounded-2xl px-4 py-3 text-base font-semibold text-error-dark hover:bg-error-light"
               >
                 <LogOut className="w-5 h-5 mr-3" />
                 Logout
               </button>
             </div>
           </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

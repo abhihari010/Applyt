@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
-import Nav from "../components/Nav";
 import { remindersApi, applicationsApi, analyticsApi, Reminder } from "../api";
 import {
   Bell,
@@ -9,11 +8,17 @@ import {
   Clock,
   CheckCircle,
   Trash2,
-  ExternalLink,
   CheckSquare,
+  Plus,
+  ArrowRight,
+  SquareKanban,
+  BarChart3,
+  Briefcase,
 } from "lucide-react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { AppShell, EmptyState, PageHeader, StatTile } from "../components/AppShell";
+import StatusBadge from "../components/StatusBadge";
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -52,7 +57,7 @@ export default function Dashboard() {
         ? Object.values(analytics.statusCounts).reduce((a, b) => a + b, 0)
         : 0,
       icon: TrendingUp,
-      color: "bg-blue-500",
+      tone: "brand" as const,
     },
     {
       label: "In Progress",
@@ -61,19 +66,19 @@ export default function Dashboard() {
         (analytics?.statusCounts?.OA || 0) +
         (analytics?.statusCounts?.INTERVIEW || 0),
       icon: Clock,
-      color: "bg-yellow-500",
+      tone: "warning" as const,
     },
     {
       label: "Offers",
       value: analytics?.statusCounts?.OFFER || 0,
       icon: CheckCircle,
-      color: "bg-green-500",
+      tone: "success" as const,
     },
     {
       label: "Due Reminders",
       value: Array.isArray(reminders) ? reminders.filter((r) => !r.completed).length : 0,
       icon: Bell,
-      color: "bg-purple-500",
+      tone: "accent" as const,
     },
   ];
   const deleteMutation = useMutation({
@@ -171,48 +176,47 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Nav />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">
-            Welcome back! Here's your application overview.
-          </p>
-        </div>
+    <AppShell>
+      <PageHeader
+        eyebrow="Command center"
+        title="Dashboard"
+        description="A fast read on your pipeline, reminders, and the next useful move."
+        actions={
+          <Link to="/applications/new" className="btn-primary">
+            <Plus className="h-4 w-4" />
+            New Application
+          </Link>
+        }
+      />
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.label} className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-                    <p className="text-3xl font-bold text-gray-900">
-                      {stat.value}
-                    </p>
-                  </div>
-                  <div className={`${stat.color} p-3 rounded-lg`}>
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat, index) => (
+            <StatTile
+              key={stat.label}
+              label={stat.label}
+              value={stat.value}
+              icon={stat.icon}
+              tone={stat.tone}
+              index={index}
+            />
+          ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           {/* Due Reminders */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <Bell className="w-5 h-5 mr-2 text-purple-600" />
-              Upcoming Reminders
-            </h2>
+          <section className="surface p-5 sm:p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="kicker">Time-sensitive</p>
+                <h2 className="mt-1 text-xl font-semibold text-neutral-950">
+                  Upcoming Reminders
+                </h2>
+              </div>
+              <Bell className="h-5 w-5 text-accent-700" />
+            </div>
             {Array.isArray(reminders) && reminders.filter((r) => !r.completed).length > 0 ? (
-              <div className="space-y-3 max-h-80 overflow-y-auto">
+              <div className="max-h-96 space-y-3 overflow-y-auto pr-1">
                 {reminders
                   .filter((r) => !r.completed)
                   .slice(0, 10)
@@ -222,7 +226,7 @@ export default function Dashboard() {
                     return (
                       <div
                         key={reminder.id}
-                        className={`border-l-4 ${urgency.borderColor} ${urgency.bgColor} rounded-r-lg p-3 cursor-pointer hover:shadow-md transition-shadow`}
+                        className={`animate-stagger-in cursor-pointer rounded-lg border border-neutral-200 bg-white p-3 shadow-sm transition duration-200 ease-out hover:border-brand-200 hover:shadow-soft-lg`}
                         onClick={() =>
                           navigate(`/applications/${reminder.applicationId}`)
                         }
@@ -231,20 +235,20 @@ export default function Dashboard() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span
-                                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${urgency.badgeClass}`}
+                                className={`rounded-full px-2 py-1 text-xs font-semibold ${urgency.badgeClass}`}
                               >
                                 {urgency.label}
                               </span>
                               {app && (
                                 <span className="text-xs text-gray-600 font-medium">
-                                  {app.company} - {app.role}
+                                  {app.company} / {app.role}
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm font-medium text-gray-900 mb-1">
+                            <p className="mb-1 text-sm font-semibold text-neutral-950">
                               {reminder.message}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="font-mono text-xs text-neutral-500">
                               {format(
                                 new Date(reminder.remindAt),
                                 "MMM d, yyyy h:mm a",
@@ -260,16 +264,16 @@ export default function Dashboard() {
                                   e,
                                 )
                               }
-                              className="p-1.5 text-green-600 hover:bg-green-100 rounded transition-colors cursor-pointer"
-                              title="Mark complete"
+                              className="icon-button min-h-9 min-w-9 text-green-700 hover:bg-green-50"
+                              aria-label="Mark reminder complete"
                               disabled={completeMutation.isPending}
                             >
                               <CheckSquare className="h-4 w-4" />
                             </button>
                             <button
                               onClick={(e) => handleDelete(reminder.id, e)}
-                              className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors cursor-pointer"
-                              title="Delete"
+                              className="icon-button min-h-9 min-w-9 text-red-700 hover:bg-red-50"
+                              aria-label="Delete reminder"
                               disabled={deleteMutation.isPending}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -281,93 +285,97 @@ export default function Dashboard() {
                   })}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No upcoming reminders</p>
+              <EmptyState
+                icon={Bell}
+                title="No reminders due"
+                description="Your follow-ups are quiet. Add reminders from an application detail page when a recruiter gives you a date."
+              />
             )}
-          </div>
+          </section>
 
           {/* Recent Applications */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4 flex items-center justify-between">
-              <span className="flex items-center">
-                <TrendingUp className="w-5 h-5 mr-2 text-blue-600" />
+          <section className="surface p-5 sm:p-6">
+            <h2 className="mb-4 flex items-center justify-between text-xl font-semibold text-neutral-950">
+              <span className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-brand-700" />
                 Recent Applications
               </span>
               <Link
                 to="/applications"
-                className="text-sm text-blue-600 hover:text-blue-700"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:text-brand-900"
               >
-                View all
+                View all <ArrowRight className="h-4 w-4" />
               </Link>
             </h2>
             {appsData?.content && appsData.content.length > 0 ? (
               <div className="space-y-3">
-                {appsData.content.map((app) => (
+                {appsData.content.map((app, index) => (
                   <Link
                     key={app.id}
                     to={`/applications/${app.id}`}
-                    className="block border-l-4 border-blue-500 pl-4 py-2 hover:bg-gray-50 transition-colors"
+                    className="animate-stagger-in block rounded-lg border border-neutral-200 bg-white p-4 shadow-sm transition duration-200 ease-out hover:border-brand-200 hover:bg-brand-50/40"
+                    style={{ "--stagger": index } as React.CSSProperties}
                   >
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-semibold text-neutral-950">
                       {app.role}
                     </p>
-                    <p className="text-xs text-gray-600 mt-1">{app.company}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          app.status === "OFFER"
-                            ? "bg-green-100 text-green-800"
-                            : app.status === "REJECTED"
-                              ? "bg-red-100 text-red-800"
-                              : app.status === "INTERVIEW"
-                                ? "bg-orange-100 text-orange-800"
-                                : "bg-blue-100 text-blue-800"
-                        }`}
-                      >
-                        {app.status}
-                      </span>
+                    <p className="mt-1 text-xs text-neutral-600">{app.company}</p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <StatusBadge status={app.status} />
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No applications yet</p>
+              <EmptyState
+                icon={TrendingUp}
+                title="No applications yet"
+                description="Start with one tracked role, then let the board and analytics do the organizing work."
+                action={
+                  <Link to="/applications/new" className="btn-primary">
+                    <Plus className="h-4 w-4" />
+                    Add application
+                  </Link>
+                }
+              />
             )}
-          </div>
+          </section>
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">
-            Quick Actions
-          </h3>
+        <div className="surface mt-6 p-5 sm:p-6">
+          <h3 className="mb-3 text-lg font-semibold text-neutral-950">Quick Actions</h3>
           <div className="flex flex-wrap gap-3">
             <Link
               to="/applications/new"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              className="btn-primary"
             >
+              <Plus className="h-4 w-4" />
               Add New Application
             </Link>
             <Link
               to="/board"
-              className="px-4 py-2 bg-white text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
+              className="btn-secondary"
             >
+              <SquareKanban className="h-4 w-4" />
               View Board
             </Link>
             <Link
               to="/analytics"
-              className="px-4 py-2 bg-white text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
+              className="btn-secondary"
             >
+              <BarChart3 className="h-4 w-4" />
               View Analytics
             </Link>
             <Link
               to="/open-jobs"
-              className="px-4 py-2 bg-white text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
+              className="btn-secondary"
             >
+              <Briefcase className="h-4 w-4" />
               View Open Jobs
             </Link>
           </div>
         </div>
-      </div>
       {/* Delete Confirmation Modal */}
       <ConfirmDeleteModal
         isOpen={deleteModalOpen}
@@ -384,6 +392,6 @@ export default function Dashboard() {
             : ""
         }
       />
-    </div>
+    </AppShell>
   );
 }

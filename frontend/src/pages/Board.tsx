@@ -12,19 +12,19 @@ import {
   useDraggable,
 } from "@dnd-kit/core";
 import { useState, useMemo } from "react";
-import { Search, Filter, Minimize2, Maximize2 } from "lucide-react";
+import { Search, Filter, Minimize2, Maximize2, Columns3 } from "lucide-react";
 import api from "../api";
-import Nav from "../components/Nav";
 import ApplicationCard from "../components/ApplicationCard";
 import { useAuth } from "../hooks/useAuth";
+import { AppShell, EmptyState, PageHeader, PageLoader } from "../components/AppShell";
 
 const STATUSES = [
-  { id: "SAVED", label: "Saved", color: "bg-gray-100" },
-  { id: "APPLIED", label: "Applied", color: "bg-blue-100" },
-  { id: "OA", label: "Online Assessment", color: "bg-purple-100" },
-  { id: "INTERVIEW", label: "Interview", color: "bg-yellow-100" },
-  { id: "OFFER", label: "Offer", color: "bg-green-100" },
-  { id: "REJECTED", label: "Rejected", color: "bg-red-100" },
+  { id: "SAVED", label: "Saved", color: "bg-neutral-100 text-neutral-800" },
+  { id: "APPLIED", label: "Applied", color: "bg-brand-50 text-brand-800" },
+  { id: "OA", label: "Assessment", color: "bg-accent-50 text-accent-800" },
+  { id: "INTERVIEW", label: "Interview", color: "bg-amber-50 text-amber-800" },
+  { id: "OFFER", label: "Offer", color: "bg-green-50 text-green-800" },
+  { id: "REJECTED", label: "Rejected", color: "bg-red-50 text-red-800" },
 ];
 
 const ITEMS_PER_COLUMN = 5;
@@ -165,28 +165,20 @@ export default function Board() {
   };
 
   if (isLoading) {
-    return (
-      <div>
-        <Nav />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-gray-600">Loading...</div>
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading board" />;
   }
 
   return (
-    <div>
-      <Nav />
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Application Pipeline
-            </h1>
+    <AppShell>
+      <PageHeader
+        eyebrow="Pipeline"
+        title="Application Board"
+        description="Drag cards across stages to keep your search moving. Filters narrow the board without hiding the workflow."
+        metric={`${filteredApplications.length} cards`}
+        actions={
             <button
               onClick={() => setCompactView(!compactView)}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
+              className="btn-secondary"
             >
               {compactView ? (
                 <>
@@ -200,14 +192,11 @@ export default function Board() {
                 </>
               )}
             </button>
-          </div>
-          <h3 className=" text-gray-900 mb-6">
-            Drag and drop your application cards to their respective status to
-            update them.
-          </h3>
+        }
+      />
           {/* Filters */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="surface mb-6 p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -216,7 +205,7 @@ export default function Board() {
                   placeholder="Search applications..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="field pl-10"
                 />
               </div>
 
@@ -228,7 +217,7 @@ export default function Board() {
                   placeholder="Filter by company..."
                   value={companyFilter}
                   onChange={(e) => setCompanyFilter(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="field pl-10"
                 />
               </div>
 
@@ -237,7 +226,7 @@ export default function Board() {
                 <select
                   value={dateRange}
                   onChange={(e) => setDateRange(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+                  className="field appearance-none"
                 >
                   <option value="all">All Time</option>
                   <option value="7">Last 7 Days</option>
@@ -247,11 +236,19 @@ export default function Board() {
               </div>
 
               {/* Results Count */}
-              <div className="flex items-center text-sm text-gray-600">
+              <div className="flex items-center font-mono text-sm text-neutral-600">
                 {filteredApplications.length} applications
               </div>
             </div>
           </div>
+
+          {filteredApplications.length === 0 && (
+            <EmptyState
+              icon={Columns3}
+              title="No cards match this board"
+              description="Adjust search, company, or date filters to see your applications by stage."
+            />
+          )}
 
           <DndContext
             sensors={sensors}
@@ -260,7 +257,7 @@ export default function Board() {
             onDragCancel={handleDragCancel}
           >
             {/* Grid Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {STATUSES.map((status) => (
                 <Column
                   key={status.id}
@@ -283,9 +280,7 @@ export default function Board() {
               ) : null}
             </DragOverlay>
           </DndContext>
-        </div>
-      </div>
-    </div>
+    </AppShell>
   );
 }
 
@@ -305,11 +300,11 @@ function Column({
   const hasMore = applications.length > visibleCount;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <div className={`${status.color} rounded-t-lg p-3`}>
-        <h3 className="font-semibold text-gray-900 flex items-center justify-between">
+    <section className="surface overflow-hidden">
+      <div className={`${status.color} border-b border-neutral-200 p-3`}>
+        <h3 className="flex items-center justify-between font-semibold">
           <span>{status.label}</span>
-          <span className="text-sm font-normal text-gray-600">
+          <span className="font-mono text-sm font-semibold opacity-70">
             {applications.length}
           </span>
         </h3>
@@ -317,8 +312,8 @@ function Column({
 
       <div
         ref={setNodeRef}
-        className={`space-y-2 min-h-32 bg-gray-50 rounded-b-lg p-3 ${
-          compactView ? "max-h-96" : "max-h-600"
+        className={`min-h-32 space-y-2 bg-neutral-50/80 p-3 ${
+          compactView ? "max-h-96" : "max-h-[600px]"
         } overflow-y-auto`}
       >
         {visibleApps.map((application: any) => (
@@ -330,20 +325,20 @@ function Column({
           />
         ))}
         {applications.length === 0 && (
-          <p className="text-sm text-gray-400 text-center py-8">
+          <p className="rounded-lg border border-dashed border-neutral-300 py-8 text-center text-sm text-neutral-500">
             Drop cards here
           </p>
         )}
         {hasMore && (
           <button
             onClick={onLoadMore}
-            className="w-full py-2 text-sm text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors"
+            className="btn-secondary w-full"
           >
             Load More ({applications.length - visibleCount} remaining)
           </button>
         )}
       </div>
-    </div>
+    </section>
   );
 }
 

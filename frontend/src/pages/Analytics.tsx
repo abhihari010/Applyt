@@ -30,15 +30,16 @@ import {
   Award,
 } from "lucide-react";
 import api, { Application } from "../api";
-import Nav from "../components/Nav";
+import { AppShell, EmptyState, PageHeader, PageLoader, StatTile } from "../components/AppShell";
 
 const STATUS_COLORS: Record<string, string> = {
-  SAVED: "#B06645",
-  APPLIED: "#3B82F6",
-  ONLINE_ASSESSMENT: "#8B5CF6",
-  INTERVIEW: "#EAB308",
-  OFFER: "#10B981",
-  REJECTED: "#EF4444",
+  SAVED: "#8c8373",
+  APPLIED: "#1f5f56",
+  OA: "#b15d35",
+  ONLINE_ASSESSMENT: "#b15d35",
+  INTERVIEW: "#d97706",
+  OFFER: "#059669",
+  REJECTED: "#dc2626",
   ACCEPTED: "#059669",
 };
 
@@ -52,14 +53,7 @@ export default function Analytics() {
   });
 
   if (isLoading) {
-    return (
-      <div>
-        <Nav />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-gray-600">Loading...</div>
-        </div>
-      </div>
-    );
+    return <PageLoader label="Loading analytics" />;
   }
 
   // Ensure applications is an array
@@ -170,115 +164,120 @@ export default function Analytics() {
       label: "Total Applications",
       value: totalApps,
       icon: Target,
-      color: "text-blue-600",
+      tone: "brand" as const,
     },
     {
       label: "Applied",
       value: appliedCount,
       icon: TrendingUp,
-      color: "text-indigo-600",
+      tone: "accent" as const,
     },
     {
       label: "Interviewed",
       value: interviewedCount,
       icon: TrendingUp,
-      color: "text-yellow-600",
+      tone: "warning" as const,
     },
     {
       label: "Offers",
       value: offerCount,
       icon: CheckCircle,
-      color: "text-green-600",
+      tone: "success" as const,
     },
   ];
 
   return (
-    <div>
-      <Nav />
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Analytics</h1>
+    <AppShell>
+      <PageHeader
+        eyebrow="Signal"
+        title="Analytics"
+        description="Track pace, response patterns, and where your pipeline is converting."
+        metric={`${totalApps} total`}
+      />
+
+      {totalApps === 0 ? (
+        <EmptyState
+          icon={Target}
+          title="No analytics yet"
+          description="Analytics start filling in as soon as you add applications with statuses and dates."
+        />
+      ) : (
+        <>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat) => (
-              <div
+          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat, index) => (
+              <StatTile
                 key={stat.label}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">{stat.label}</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">
-                      {stat.value}
-                    </p>
-                  </div>
-                  <stat.icon className={`h-10 w-10 ${stat.color}`} />
-                </div>
-              </div>
+                label={stat.label}
+                value={stat.value}
+                icon={stat.icon}
+                tone={stat.tone}
+                index={index}
+              />
             ))}
           </div>
 
           {/* Key Performance Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="surface p-5">
               <div className="flex items-center justify-between mb-2">
-                <div className="bg-brand-100 p-2 rounded-lg">
+                <div className="rounded-lg bg-brand-50 p-2">
                   <Target className="w-5 h-5 text-brand-600" />
                 </div>
-                <span className="text-xs font-bold text-green-600">
+                <span className="font-mono text-xs font-bold text-green-700">
                   {respondedApps > 0 ? "+" : ""}
                   {respondedApps}
                 </span>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">
+              <div className="metric-value mb-1">
                 {responseRate}%
               </div>
-              <div className="text-sm text-gray-600">Response Rate</div>
+              <div className="text-sm text-neutral-600">Response Rate</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="surface p-5">
               <div className="flex items-center justify-between mb-2">
-                <div className="bg-brand-100 p-2 rounded-lg">
+                <div className="rounded-lg bg-brand-50 p-2">
                   <Clock className="w-5 h-5 text-brand-600" />
                 </div>
-                <span className="text-xs font-bold text-green-600">
+                <span className="font-mono text-xs font-bold text-green-700">
                   {avgTimeToOffer > 0 ? "-" : ""}
                   {avgTimeToOffer > 0 ? `${avgTimeToOffer}d` : "N/A"}
                 </span>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">
+              <div className="metric-value mb-1">
                 {avgTimeToOffer > 0 ? `${avgTimeToOffer} days` : "N/A"}
               </div>
-              <div className="text-sm text-gray-600">Avg. Time to Offer</div>
+              <div className="text-sm text-neutral-600">Avg. Time to Offer</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="surface p-5">
               <div className="flex items-center justify-between mb-2">
-                <div className="bg-brand-100 p-2 rounded-lg">
+                <div className="rounded-lg bg-brand-50 p-2">
                   <Award className="w-5 h-5 text-brand-600" />
                 </div>
-                <span className="text-xs font-bold text-green-600">
+                <span className="font-mono text-xs font-bold text-green-700">
                   {offerCount > 0 ? "+" : ""}
                   {offerCount}
                 </span>
               </div>
-              <div className="text-3xl font-bold text-gray-900 mb-1">
+              <div className="metric-value mb-1">
                 {interviewSuccessRate}%
               </div>
-              <div className="text-sm text-gray-600">Interview Success</div>
+              <div className="text-sm text-neutral-600">Interview Success</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Applications Over Time */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="surface p-5">
+              <h2 className="mb-4 text-lg font-semibold text-neutral-950">
                 Applications Per Week
               </h2>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ded9cb" />
                   <XAxis dataKey="week" />
                   <YAxis />
                   <Tooltip />
@@ -286,16 +285,16 @@ export default function Analytics() {
                   <Line
                     type="monotone"
                     dataKey="applications"
-                    stroke="#3B82F6"
-                    strokeWidth={2}
+                    stroke="#1f5f56"
+                    strokeWidth={3}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
             {/* Status Distribution */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="surface p-5">
+              <h2 className="mb-4 text-lg font-semibold text-neutral-950">
                 Status Distribution
               </h2>
               <ResponsiveContainer width="100%" height={300}>
@@ -325,25 +324,25 @@ export default function Analytics() {
             </div>
 
             {/* Priority Distribution */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="surface p-5">
+              <h2 className="mb-4 text-lg font-semibold text-neutral-950">
                 Priority Distribution
               </h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={priorityData}>
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ded9cb" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="value" fill="#8B5CF6" />
+                  <Bar dataKey="value" fill="#b15d35" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
             {/* Status Breakdown Table */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="surface p-5">
+              <h2 className="mb-4 text-lg font-semibold text-neutral-950">
                 Status Breakdown
               </h2>
               <div className="space-y-3">
@@ -362,13 +361,13 @@ export default function Analytics() {
                             ] || "#9CA3AF",
                         }}
                       />
-                      <span className="text-sm text-gray-700">{item.name}</span>
+                      <span className="text-sm text-neutral-700">{item.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="font-mono text-sm font-semibold text-neutral-950">
                         {item.value}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="font-mono text-xs text-neutral-500">
                         ({((item.value / totalApps) * 100).toFixed(1)}%)
                       </span>
                     </div>
@@ -377,8 +376,8 @@ export default function Analytics() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </>
+      )}
+    </AppShell>
   );
 }

@@ -1,7 +1,20 @@
 import React, { useEffect, useState } from "react";
-import Nav from "../components/Nav";
-import { OpenJob, jobsApi } from "../api";
 import { useNavigate } from "react-router-dom";
+import {
+  Calendar,
+  ExternalLink,
+  MapPin,
+  Plus,
+  RefreshCw,
+  SearchX,
+} from "lucide-react";
+import { OpenJob, jobsApi } from "../api";
+import {
+  AppShell,
+  EmptyState,
+  PageHeader,
+  SkeletonBlock,
+} from "../components/AppShell";
 
 interface PageResponse<T> {
   content: T[];
@@ -41,7 +54,6 @@ const OpenJobs = () => {
     }
   };
 
-  // Fetch jobs when component mounts
   useEffect(() => {
     fetchOpenJobs(page);
   }, []);
@@ -49,123 +61,134 @@ const OpenJobs = () => {
   const handleAddApplication = (job: OpenJob) => {
     navigate("/applications/new", { state: { prefillJob: job } });
   };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Nav />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Open Jobs</h1>
-            <p className="text-gray-600 mt-1">
-              Current open job listings. Updated every 12 hours.
-            </p>
-          </div>
+    <AppShell>
+      <PageHeader
+        eyebrow="Market scan"
+        title="Open Jobs"
+        description="Fresh internship listings you can add to your tracked applications."
+        metric={`${totalElements} listings`}
+        actions={
           <button
             onClick={() => fetchOpenJobs(page)}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="btn-primary"
           >
-            {loading ? "Refreshing..." : "Refresh"}
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            {loading ? "Refreshing" : "Refresh"}
           </button>
+        }
+      />
+
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+          {error}
         </div>
+      )}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
-          </div>
-        )}
-
-        {loading && openJobs.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-600 mt-4">Loading jobs...</p>
-          </div>
-        ) : openJobs.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">
-              No open jobs available at the moment.
-            </p>
-          </div>
-        ) : (
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul className="divide-y divide-gray-200">
-              {openJobs.map((job, index) => (
-                <li key={index} className="hover:bg-gray-50">
-                  <div className="px-6 py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-medium text-gray-900">
-                          {job.role}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {job.company}
-                        </p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                          <span>📍 {job.location}</span>
-                          <span>
-                            📅 {new Date(job.datePosted).toLocaleDateString()}
-                          </span>
-                        </div>
+      {loading && openJobs.length === 0 ? (
+        <div className="space-y-3">
+          {[0, 1, 2, 3, 4].map((item) => (
+            <SkeletonBlock key={item} className="h-24" />
+          ))}
+        </div>
+      ) : openJobs.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title="No open jobs available"
+          description="The feed is quiet right now. Refresh later or add a role manually if you already have a link."
+        />
+      ) : (
+        <div className="surface overflow-hidden">
+          <ul className="divide-y divide-neutral-200">
+            {openJobs.map((job, index) => (
+              <li
+                key={`${job.company}-${job.role}-${index}`}
+                className="animate-stagger-in hover:bg-brand-50/40"
+                style={{ "--stagger": index } as React.CSSProperties}
+              >
+                <div className="px-5 py-4">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-neutral-950">
+                        {job.role}
+                      </h3>
+                      <p className="mt-1 text-sm text-neutral-600">
+                        {job.company}
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-neutral-500">
+                        <span className="inline-flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4" />
+                          {job.location}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 font-mono">
+                          <Calendar className="h-4 w-4" />
+                          {new Date(job.datePosted).toLocaleDateString()}
+                        </span>
                       </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => handleAddApplication(job)}
-                        className="ml-4 px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 cursor-pointer"
+                        className="btn-primary"
                       >
-                        Add to my Applications
+                        <Plus className="h-4 w-4" />
+                        Add
                       </button>
                       <a
                         href={job.jobUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="ml-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+                        className="btn-secondary"
                       >
+                        <ExternalLink className="h-4 w-4" />
                         Apply
                       </a>
                     </div>
                   </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex items-center justify-between">
-            <div className="text-sm text-gray-500">
-              Showing {page * pageSize + 1} to{" "}
-              {Math.min((page + 1) * pageSize, totalElements)} of{" "}
-              {totalElements} jobs
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => fetchOpenJobs(page - 1)}
-                disabled={page === 0 || loading}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Previous
-              </button>
-              <span className="px-4 py-2 text-gray-700">
-                Page {page + 1} of {totalPages}
-              </span>
-              <button
-                onClick={() => fetchOpenJobs(page + 1)}
-                disabled={page >= totalPages - 1 || loading}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Next
-              </button>
-            </div>
+      {totalPages > 1 && (
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="font-mono text-sm text-neutral-500">
+            Showing {page * pageSize + 1} to{" "}
+            {Math.min((page + 1) * pageSize, totalElements)} of{" "}
+            {totalElements} jobs
           </div>
-        )}
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => fetchOpenJobs(page - 1)}
+              disabled={page === 0 || loading}
+              className="btn-secondary"
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2 font-mono text-sm text-neutral-700">
+              Page {page + 1} of {totalPages}
+            </span>
+            <button
+              onClick={() => fetchOpenJobs(page + 1)}
+              disabled={page >= totalPages - 1 || loading}
+              className="btn-secondary"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
-        {totalPages <= 1 && openJobs.length > 0 && (
-          <div className="mt-6 text-center text-sm text-gray-500">
-            Showing all {totalElements} job{totalElements !== 1 ? "s" : ""}
-          </div>
-        )}
-      </div>
-    </div>
+      {totalPages <= 1 && openJobs.length > 0 && (
+        <div className="mt-6 text-center font-mono text-sm text-neutral-500">
+          Showing all {totalElements} job{totalElements !== 1 ? "s" : ""}
+        </div>
+      )}
+    </AppShell>
   );
 };
 

@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { authApi } from "../api";
 import { useAuth } from "../hooks/useAuth";
-import Nav from "../components/Nav";
 import DeleteAccountModal from "../components/DeleteAccountModal";
+import { AppShell, PageHeader } from "../components/AppShell";
 
 interface ProfileForm {
   name: string;
@@ -211,40 +211,42 @@ export default function Settings() {
   };
 
   return (
-    <>
-      <Nav />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Settings</h1>
+    <AppShell maxWidth="4xl">
+        <PageHeader
+          eyebrow="Workspace"
+          title="Settings"
+          description="Manage account details, security, and how your application cockpit behaves."
+        />
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8 ">
+        <div className="surface mb-6 p-1">
+          <nav className="grid grid-cols-3 gap-1">
             <button
               onClick={() => setActiveTab("profile")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm cursor-pointer ${
+              className={`applet-button rounded-lg px-3 py-2 text-sm font-semibold ${
                 activeTab === "profile"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "bg-brand-700 text-white"
+                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
               }`}
             >
               Profile
             </button>
             <button
               onClick={() => setActiveTab("security")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm cursor-pointer ${
+              className={`applet-button rounded-lg px-3 py-2 text-sm font-semibold ${
                 activeTab === "security"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "bg-brand-700 text-white"
+                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
               }`}
             >
               Security
             </button>
             <button
               onClick={() => setActiveTab("preferences")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm cursor-pointer ${
+              className={`applet-button rounded-lg px-3 py-2 text-sm font-semibold ${
                 activeTab === "preferences"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "bg-brand-700 text-white"
+                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
               }`}
             >
               Preferences
@@ -255,10 +257,10 @@ export default function Settings() {
         {/* Message Display */}
         {message && (
           <div
-            className={`mb-6 p-4 rounded-md ${
+            className={`mb-6 rounded-lg border p-4 ${
               message.type === "success"
-                ? "bg-green-50 text-green-800"
-                : "bg-red-50 text-red-800"
+                ? "border-green-200 bg-green-50 text-green-800"
+                : "border-red-200 bg-red-50 text-red-800"
             }`}
           >
             {message.text}
@@ -267,7 +269,7 @@ export default function Settings() {
 
         {/* Profile Tab */}
         {activeTab === "profile" && (
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="surface p-6">
             <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
             <form onSubmit={handleProfileUpdate} className="space-y-4">
               <div>
@@ -284,7 +286,7 @@ export default function Settings() {
                   onChange={(e) =>
                     setProfileForm({ ...profileForm, name: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="field"
                   required
                 />
               </div>
@@ -302,7 +304,7 @@ export default function Settings() {
                   onChange={(e) =>
                     setProfileForm({ ...profileForm, email: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="field"
                   required
                 />
               </div>
@@ -310,7 +312,7 @@ export default function Settings() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary"
                 >
                   {loading ? "Saving..." : "Save Changes"}
                 </button>
@@ -324,7 +326,7 @@ export default function Settings() {
           <div className="space-y-6">
             {/* Show OAuth info if user has OAuth provider */}
             {user?.oauthProvider && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="rounded-lg border border-brand-200 bg-brand-50 p-4">
                 <div className="flex items-center gap-2">
                   <svg
                     className="w-5 h-5 text-blue-600"
@@ -339,7 +341,7 @@ export default function Settings() {
                       d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <p className="text-sm text-blue-800">
+                  <p className="text-sm text-brand-800">
                     You signed in with{" "}
                     <span className="font-semibold capitalize">
                       {user.oauthProvider}
@@ -351,7 +353,7 @@ export default function Settings() {
               </div>
             )}
 
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="surface p-6">
               <h2 className="text-xl font-semibold mb-4">
                 {user?.hasPassword ? "Change Password" : "Set Password"}
               </h2>
@@ -375,7 +377,7 @@ export default function Settings() {
                           currentPassword: e.target.value,
                         })
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="field"
                       required
                     />
                   </div>
@@ -397,7 +399,7 @@ export default function Settings() {
                         newPassword: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="field"
                     required
                     minLength={8}
                   />
@@ -422,7 +424,7 @@ export default function Settings() {
                         confirmPassword: e.target.value,
                       })
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="field"
                     required
                   />
                 </div>
@@ -430,7 +432,7 @@ export default function Settings() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="btn-primary"
                   >
                     {loading ? "Changing..." : "Change Password"}
                   </button>
@@ -438,7 +440,7 @@ export default function Settings() {
               </form>
             </div>
 
-            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+            <div className="surface border-l-4 border-red-500 p-6">
               <h2 className="text-xl font-semibold mb-2 text-red-700">
                 Danger Zone
               </h2>
@@ -449,7 +451,7 @@ export default function Settings() {
               <button
                 onClick={() => setShowDeleteModal(true)}
                 disabled={loading}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="btn-danger"
               >
                 Delete Account
               </button>
@@ -459,7 +461,7 @@ export default function Settings() {
 
         {/* Preferences Tab */}
         {activeTab === "preferences" && (
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="surface p-6">
             <h2 className="text-xl font-semibold mb-4">
               Application Preferences
             </h2>
@@ -533,7 +535,6 @@ export default function Settings() {
             </div>
           </div>
         )}
-      </div>
 
       {/* Delete Account Modal */}
       <DeleteAccountModal
@@ -542,6 +543,6 @@ export default function Settings() {
         onConfirm={handleDeleteAccount}
         loading={loading}
       />
-    </>
+    </AppShell>
   );
 }

@@ -6,52 +6,53 @@ const config: Config = {
     extend: {
       // Brand Typography System
       fontFamily: {
-        display: ['"DM Sans"', "Inter", "system-ui", "sans-serif"], // Headlines
-        sans: ["Inter", "system-ui", "sans-serif"], // Body text
+        display: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"], // Headlines
+        sans: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"], // Body text
+        mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
       },
 
       // Brand Color System
       colors: {
         brand: {
-          // Primary - Refined Blue
-          50: "#eff6ff",
-          100: "#dbeafe",
-          200: "#bfdbfe",
-          300: "#93c5fd",
-          400: "#60a5fa",
-          500: "#3b82f6", // Primary
-          600: "#2563eb",
-          700: "#1d4ed8",
-          800: "#1e40af",
-          900: "#1e3a8a",
-          950: "#172554",
+          // Primary - tempered evergreen
+          50: "#edf7f4",
+          100: "#d5ebe4",
+          200: "#add8cc",
+          300: "#7cbeae",
+          400: "#4e9e8f",
+          500: "#2f7e72",
+          600: "#1f5f56",
+          700: "#1c4f49",
+          800: "#193f3b",
+          900: "#163431",
+          950: "#0a211f",
         },
         accent: {
-          // Accent - Vibrant Purple
-          50: "#faf5ff",
-          100: "#f3e8ff",
-          200: "#e9d5ff",
-          300: "#d8b4fe",
-          400: "#c084fc",
-          500: "#a855f7", // Accent
-          600: "#9333ea",
-          700: "#7e22ce",
-          800: "#6b21a8",
-          900: "#581c87",
+          // Accent - muted copper
+          50: "#fbf1ea",
+          100: "#f5dfcf",
+          200: "#eab995",
+          300: "#dd9666",
+          400: "#c97745",
+          500: "#b15d35",
+          600: "#944629",
+          700: "#793623",
+          800: "#622e21",
+          900: "#512820",
         },
         neutral: {
-          // Neutral with warm tint
-          50: "#fafaf9",
-          100: "#f5f5f4",
-          200: "#e7e5e4",
-          300: "#d6d3d1",
-          400: "#a8a29e",
-          500: "#78716c",
-          600: "#57534e",
-          700: "#44403c",
-          800: "#292524",
-          900: "#1c1917",
-          950: "#0c0a09",
+          // Neutral with paper/ink character
+          50: "#fbfaf6",
+          100: "#f7f6f2",
+          200: "#eeece4",
+          300: "#ded9cb",
+          400: "#b9b19f",
+          500: "#8c8373",
+          600: "#686154",
+          700: "#4f493f",
+          800: "#35322c",
+          900: "#20201d",
+          950: "#121210",
         },
         success: {
           light: "#d1fae5",
@@ -92,9 +93,9 @@ const config: Config = {
 
       // Shadow Depth System
       boxShadow: {
-        soft: "0 2px 8px rgba(0, 0, 0, 0.04)",
-        "soft-lg": "0 4px 16px rgba(0, 0, 0, 0.06)",
-        "soft-xl": "0 8px 24px rgba(0, 0, 0, 0.08)",
+        soft: "0 2px 10px rgba(44, 40, 32, 0.05)",
+        "soft-lg": "0 12px 32px rgba(44, 40, 32, 0.08)",
+        "soft-xl": "0 24px 70px rgba(44, 40, 32, 0.11)",
         "elevation-1":
           "0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)",
         "elevation-2":
@@ -103,8 +104,8 @@ const config: Config = {
           "0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)",
         "elevation-4":
           "0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04)",
-        glow: "0 0 20px rgba(59, 130, 246, 0.3)",
-        "glow-accent": "0 0 20px rgba(168, 85, 247, 0.3)",
+        glow: "0 16px 36px rgba(31, 95, 86, 0.16)",
+        "glow-accent": "0 16px 36px rgba(177, 93, 53, 0.16)",
       },
 
       // Animation System
