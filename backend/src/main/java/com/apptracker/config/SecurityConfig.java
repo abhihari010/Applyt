@@ -28,12 +28,14 @@ public class SecurityConfig {
         private final JwtAuthFilter jwtAuthFilter;
         private final OAuth2SuccessHandler oauth2SuccessHandler;
         private final OAuth2Service oauth2Service;
+        private final RateLimitingFilter rateLimitingFilter;
 
         public SecurityConfig(JwtAuthFilter jwtAuthFilter, OAuth2SuccessHandler oauth2SuccessHandler,
-                        OAuth2Service oauth2Service) {
+                        OAuth2Service oauth2Service, RateLimitingFilter rateLimitingFilter) {
                 this.jwtAuthFilter = jwtAuthFilter;
                 this.oauth2SuccessHandler = oauth2SuccessHandler;
                 this.oauth2Service = oauth2Service;
+                this.rateLimitingFilter = rateLimitingFilter;
         }
 
         @Bean
@@ -48,7 +50,6 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/auth/login", "/api/auth/register",
                                                                 "/api/auth/verify-email",
                                                                 "/api/auth/resend-verification-email",
-                                                                "/actuator/**",
                                                                 "/api/forgot-password/**", "/oauth2/**",
                                                                 "/login/oauth2/**", "/api/jobs/**")
                                                 .permitAll()
@@ -57,6 +58,7 @@ public class SecurityConfig {
                                                 .userInfoEndpoint(userInfo -> userInfo
                                                                 .userService(oauth2Service))
                                                 .successHandler(oauth2SuccessHandler))
+                                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
                 return http.build();

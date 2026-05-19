@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final AuthService authService;
@@ -100,7 +99,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public ResponseEntity<?> verifyEmail(@RequestParam String token) {
+    public ResponseEntity<?> verifyEmail(@RequestParam(required = true) String token) {
         try {
             authService.verifyEmail(token);
             return ResponseEntity.ok(Map.of("message", "Email verified successfully"));

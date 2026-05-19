@@ -26,7 +26,8 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final ActivityRepository activityRepository;
 
-    public ApplicationService(ApplicationRepository applicationRepository, ActivityRepository activityRepository) {
+    public ApplicationService(ApplicationRepository applicationRepository,
+            ActivityRepository activityRepository) {
         this.applicationRepository = applicationRepository;
         this.activityRepository = activityRepository;
     }

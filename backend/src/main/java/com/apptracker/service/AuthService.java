@@ -12,6 +12,7 @@ import com.apptracker.repository.UserRepository;
 import com.apptracker.repository.VerifyEmailTokenRepository;
 import com.apptracker.security.JwtUtil;
 import com.apptracker.util.AppLogger;
+import com.apptracker.util.ValidationUtils;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,12 +49,21 @@ public class AuthService {
      * Register a new user and send verification email
      */
     public RegisterResponse register(String name, String email, String password) {
+        // Validate name for reserved names and malicious content
+        ValidationUtils.validateName(name);
+
+        // Additional password strength validation
+        ValidationUtils.validatePasswordStrength(password);
+
+        // Sanitize name to prevent XSS
+        String sanitizedName = ValidationUtils.sanitizeString(name);
+
         if (userRepo.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email already taken");
         }
 
         User user = new User();
-        user.setName(name);
+        user.setName(sanitizedName);
         user.setEmail(email);
         user.setPasswordHash(pwEncoder.encode(password));
         user.setEmailVerified(false);
@@ -69,7 +79,7 @@ public class AuthService {
         emailVerificationTokenRepository.save(verificationToken);
 
         // Send verification email
-        sendVerificationEmail(saved.getEmail(), verificationToken.getToken(), name);
+        sendVerificationEmail(saved.getEmail(), verificationToken.getToken(), sanitizedName);
 
         return new RegisterResponse("Registration successful. Please check your email to verify your account.");
 

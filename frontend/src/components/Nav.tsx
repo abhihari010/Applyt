@@ -45,22 +45,25 @@ export default function Nav() {
     ];
 
     return (
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-white/80 backdrop-blur-md shadow-soft border-b border-neutral-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="shrink-0 flex items-center">
-                <Link to="/" className="text-2xl font-bold text-blue-600">
+                <Link
+                  to="/"
+                  className="font-display text-2xl font-bold gradient-text"
+                >
                   Applyt
                 </Link>
               </div>
               {/* Desktop Navigation */}
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
+              <div className="hidden sm:ml-8 sm:flex sm:space-x-2">
                 {publicNavItems.map((item) => (
                   <Link
                     key={item.to}
                     to={item.to}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all duration-200"
                   >
                     {item.label}
                   </Link>
@@ -72,7 +75,7 @@ export default function Nav() {
             <div className="hidden sm:flex items-center space-x-4">
               <Link
                 to="/signup"
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center px-6 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 hover:shadow-elevation-2 hover:-translate-y-0.5 transition-all duration-200"
               >
                 Get Started
               </Link>
@@ -82,7 +85,7 @@ export default function Nav() {
             <div className="flex items-center sm:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                className="inline-flex items-center justify-center p-2 rounded-lg text-neutral-700 hover:text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500"
               >
                 <span className="sr-only">Open main menu</span>
                 {mobileMenuOpen ? (
@@ -97,23 +100,23 @@ export default function Nav() {
           {/* Mobile menu */}
           {mobileMenuOpen && (
             <div className="sm:hidden">
-              <div className="pt-2 pb-3 space-y-1 border-t">
+              <div className="pt-2 pb-3 space-y-1 border-t border-neutral-200">
                 {publicNavItems.map((item) => (
                   <Link
                     key={item.to}
                     to={item.to}
                     onClick={handleNavClick}
-                    className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors rounded-md"
+                    className="block px-4 py-3 text-base font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 transition-colors rounded-lg"
                   >
                     {item.label}
                   </Link>
                 ))}
               </div>
-              <div className="pt-4 pb-3 border-t border-gray-200">
+              <div className="pt-4 pb-3 border-t border-neutral-200">
                 <Link
                   to="/signup"
                   onClick={handleNavClick}
-                  className="block px-4 py-3 text-base font-medium text-blue-600 hover:bg-blue-50 transition-colors rounded-md"
+                  className="block px-4 py-3 text-base font-medium text-white bg-brand-600 hover:bg-brand-700 transition-colors rounded-lg text-center"
                 >
                   Get Started
                 </Link>
@@ -126,27 +129,27 @@ export default function Nav() {
   }
 
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <nav className="bg-white/80 backdrop-blur-md shadow-soft border-b border-neutral-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="shrink-0 flex items-center">
               <Link
                 to="/dashboard"
-                className="text-2xl font-bold text-blue-600"
+                className="font-display text-2xl font-bold gradient-text"
               >
                 Applyt
               </Link>
             </div>
             {/* Desktop Navigation */}
-            <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
+            <div className="hidden sm:ml-8 sm:flex sm:space-x-2">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.to}
                     to={item.to}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-all duration-200"
                   >
                     <Icon className="w-4 h-4 mr-2" />
                     {item.label}
@@ -160,7 +163,7 @@ export default function Nav() {
           <div className="hidden sm:flex items-center space-x-4">
             <Link
               to="/applications/new"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-5 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 hover:shadow-elevation-2 hover:-translate-y-0.5 transition-all duration-200"
             >
               <Plus className="w-4 h-4 mr-2" />
               New Application
@@ -168,13 +171,13 @@ export default function Nav() {
             <div className="flex items-center space-x-3">
               <Link
                 to="/settings"
-                className="text-sm text-gray-700 hover:text-blue-600"
+                className="text-sm font-medium text-neutral-700 hover:text-brand-600 transition-colors"
               >
                 {user?.name}
               </Link>
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                className="inline-flex items-center px-3 py-2 text-sm font-medium text-neutral-700 hover:text-error-dark hover:bg-error-light rounded-lg transition-all duration-200"
               >
                 <LogOut className="w-4 h-4 mr-1 cursor-pointer" />
                 Logout
@@ -186,7 +189,7 @@ export default function Nav() {
           <div className="flex items-center sm:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              className="inline-flex items-center justify-center p-2 rounded-lg text-neutral-700 hover:text-brand-600 hover:bg-brand-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500"
             >
               <span className="sr-only">Open main menu</span>
               {mobileMenuOpen ? (
@@ -201,7 +204,7 @@ export default function Nav() {
 
       {mobileMenuOpen && (
         <div className="sm:hidden">
-          <div className="pt-2 pb-3 space-y-1 border-t">
+          <div className="pt-2 pb-3 space-y-1 border-t border-neutral-200">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -209,7 +212,7 @@ export default function Nav() {
                   key={item.to}
                   to={item.to}
                   onClick={handleNavClick}
-                  className="flex items-center px-4 py-3 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  className="flex items-center px-4 py-3 text-base font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 transition-colors rounded-lg"
                 >
                   <Icon className="w-5 h-5 mr-3" />
                   {item.label}
@@ -217,9 +220,9 @@ export default function Nav() {
               );
             })}
           </div>
-          <div className="pt-4 pb-3 border-t border-gray-200">
+          <div className="pt-4 pb-3 border-t border-neutral-200">
             <div className="flex items-center px-4 mb-3">
-              <div className="text-base font-medium text-gray-800">
+              <div className="text-base font-medium text-neutral-800">
                 {user?.name}
               </div>
             </div>
@@ -227,7 +230,7 @@ export default function Nav() {
               <Link
                 to="/applications/new"
                 onClick={handleNavClick}
-                className="flex items-center px-4 py-3 text-base font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                className="flex items-center px-4 py-3 text-base font-medium text-white bg-brand-600 hover:bg-brand-700 transition-colors rounded-lg"
               >
                 <Plus className="w-5 h-5 mr-3" />
                 New Application
@@ -235,7 +238,7 @@ export default function Nav() {
               <Link
                 to="/settings"
                 onClick={handleNavClick}
-                className="block px-4 py-3 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                className="block px-4 py-3 text-base font-medium text-neutral-700 hover:text-brand-600 hover:bg-brand-50 transition-colors rounded-lg"
               >
                 Settings
               </Link>
@@ -244,7 +247,7 @@ export default function Nav() {
                   handleNavClick();
                   handleLogout();
                 }}
-                className="flex items-center w-full px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
+                className="flex items-center w-full px-4 py-3 text-base font-medium text-error-dark hover:bg-error-light transition-colors rounded-lg"
               >
                 <LogOut className="w-5 h-5 mr-3" />
                 Logout

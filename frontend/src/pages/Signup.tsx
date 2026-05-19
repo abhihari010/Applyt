@@ -3,6 +3,14 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import Nav from "../components/Nav";
 
+// Reserved names that cannot be used
+const RESERVED_NAMES = [
+  "admin", "administrator", "root", "superuser", "sysadmin",
+  "system", "support", "moderator", "mod", "owner", "webmaster",
+  "postmaster", "hostmaster", "abuse", "security", "noreply",
+  "no-reply", "service", "api", "bot", "help", "info"
+];
+
 export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -11,29 +19,59 @@ export default function Signup() {
   const [validationErrors, setValidationErrors] = useState<{
     [key: string]: string;
   }>({});
+  const [passwordStrength, setPasswordStrength] = useState<
+    "weak" | "medium" | "strong" | null
+  >(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { register } = useAuth();
 
+  const calculatePasswordStrength = (pwd: string): "weak" | "medium" | "strong" => {
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (pwd.length >= 12) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/\d/.test(pwd)) score++;
+    if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+
+    if (score <= 3) return "weak";
+    if (score <= 5) return "medium";
+    return "strong";
+  };
+
   const validateForm = (): boolean => {
     const errors: { [key: string]: string } = {};
 
+    // Name validation matching backend rules
     if (!name) {
       errors.name = "Full name is required";
-    } else if (name.length < 2) {
+    } else if (name.trim().length < 2) {
       errors.name = "Name must be at least 2 characters";
+    } else if (name.trim().length > 50) {
+      errors.name = "Name must not exceed 50 characters";
+    } else if (!/^[a-zA-Z0-9\s._-]+$/.test(name)) {
+      errors.name = "Name can only contain letters, numbers, spaces, dots, underscores, and hyphens";
+    } else if (RESERVED_NAMES.includes(name.toLowerCase().trim())) {
+      errors.name = "This name is reserved and cannot be used";
     }
 
+    // Email validation
     if (!email) {
       errors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.email = "Please enter a valid email address";
     }
 
+    // Password validation matching backend rules
     if (!password) {
       errors.password = "Password is required";
     } else if (password.length < 8) {
       errors.password = "Password must be at least 8 characters";
+    } else if (password.length > 128) {
+      errors.password = "Password must not exceed 128 characters";
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      errors.password = "Password must contain uppercase, lowercase, and number";
     }
 
     setValidationErrors(errors);
@@ -56,7 +94,16 @@ export default function Signup() {
       await register(name, email, password);
       navigate(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
-      setError(err.response?.data?.error || "Registration failed");
+      const status = err.response?.status;
+      const errorMessage = err.response?.data?.error;
+
+      if (status === 429) {
+        setError("Too many registration attempts. Please try again later.");
+      } else if (errorMessage) {
+        setError(errorMessage);
+      } else {
+        setError("Registration failed. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -139,13 +186,20 @@ export default function Signup() {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (e.target.value.length > 0) {
+                    setPasswordStrength(calculatePasswordStrength(e.target.value));
+                  } else {
+                    setPasswordStrength(null);
+                  }
+                }}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   validationErrors.password
                     ? "border-red-500"
                     : "border-gray-300"
                 }`}
-                placeholder="••••••••"
+                placeholder="Enter your password"
                 required
               />
               {validationErrors.password && (
@@ -153,7 +207,35 @@ export default function Signup() {
                   {validationErrors.password}
                 </p>
               )}
-              <p className="text-gray-500 text-xs mt-1">Minimum 8 characters</p>
+              {passwordStrength && !validationErrors.password && (
+                <div className="mt-2">
+                  <div className="flex gap-1 mb-1">
+                    <div className={`h-1 flex-1 rounded ${
+                      passwordStrength === "weak" ? "bg-red-500" :
+                      passwordStrength === "medium" ? "bg-yellow-500" :
+                      "bg-green-500"
+                    }`}></div>
+                    <div className={`h-1 flex-1 rounded ${
+                      passwordStrength === "medium" ? "bg-yellow-500" :
+                      passwordStrength === "strong" ? "bg-green-500" :
+                      "bg-gray-200"
+                    }`}></div>
+                    <div className={`h-1 flex-1 rounded ${
+                      passwordStrength === "strong" ? "bg-green-500" : "bg-gray-200"
+                    }`}></div>
+                  </div>
+                  <p className={`text-xs ${
+                    passwordStrength === "weak" ? "text-red-600" :
+                    passwordStrength === "medium" ? "text-yellow-600" :
+                    "text-green-600"
+                  }`}>
+                    Password strength: {passwordStrength}
+                  </p>
+                </div>
+              )}
+              <p className="text-gray-500 text-xs mt-1">
+                Must be 8+ characters with uppercase, lowercase, and number
+              </p>
             </div>
 
             <button

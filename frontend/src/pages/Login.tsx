@@ -52,13 +52,20 @@ export default function Login() {
       await login(email, password);
       navigate("/dashboard");
     } catch (err: any) {
+      const status = err.response?.status;
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||
         "Invalid credentials. Please try again.";
       const errorEmailFromResponse = err.response?.data?.email;
 
-      setError(errorMessage);
+      // Handle rate limiting
+      if (status === 429) {
+        setError("Too many login attempts. Please try again in a few minutes.");
+      } else {
+        setError(errorMessage);
+      }
+
       if (errorEmailFromResponse) {
         setErrorEmail(errorEmailFromResponse);
       }

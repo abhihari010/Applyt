@@ -32,7 +32,7 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Types
@@ -161,7 +161,7 @@ export const authApi = {
     api.post("/forgot-password/request", data),
 
   validateForgotPassword: (token: string) =>
-    api.get(`/forgot-password/validate/${token}`),
+    api.post("/forgot-password/validate", { token }),
 
   resetPassword: (data: { token: string | null; newPassword: string }) =>
     api.post("/forgot-password/reset", data),
@@ -213,7 +213,7 @@ export const contactsApi = {
 
   create: (
     appId: string,
-    data: Omit<Contact, "id" | "applicationId" | "createdAt">
+    data: Omit<Contact, "id" | "applicationId" | "createdAt">,
   ) => api.post<Contact>(`/apps/${appId}/contacts`, data),
 
   delete: (appId: string, contactId: string) =>
@@ -245,11 +245,11 @@ export const attachmentsApi = {
 
   presign: (
     appId: string,
-    data: { fileName: string; contentType: string; sizeBytes: number }
+    data: { fileName: string; contentType: string; sizeBytes: number },
   ) =>
     api.post<{ uploadUrl: string; objectKey: string; expiresAt: number }>(
       `/apps/${appId}/attachments/presign`,
-      data
+      data,
     ),
 
   confirm: (
@@ -259,12 +259,12 @@ export const attachmentsApi = {
       fileName: string;
       contentType: string;
       sizeBytes: number;
-    }
+    },
   ) => api.post<Attachment>(`/apps/${appId}/attachments/confirm`, data),
 
   getDownloadUrl: (attachmentId: string) =>
     api.get<{ downloadUrl: string }>(
-      `/attachments/${attachmentId}/download-url`
+      `/attachments/${attachmentId}/download-url`,
     ),
 
   delete: (appId: string, attachmentId: string) =>

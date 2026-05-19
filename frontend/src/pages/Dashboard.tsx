@@ -134,7 +134,7 @@ export default function Dashboard() {
     if (isPast(reminderDate) && reminderDate < now) {
       return {
         label: "Overdue",
-        color: "red",
+        badgeClass: "bg-red-100 text-red-800",
         bgColor: "bg-red-50",
         borderColor: "border-red-500",
       };
@@ -142,7 +142,7 @@ export default function Dashboard() {
     if (isToday(reminderDate)) {
       return {
         label: "Today",
-        color: "orange",
+        badgeClass: "bg-orange-100 text-orange-800",
         bgColor: "bg-orange-50",
         borderColor: "border-orange-500",
       };
@@ -150,14 +150,14 @@ export default function Dashboard() {
     if (isTomorrow(reminderDate)) {
       return {
         label: "Tomorrow",
-        color: "yellow",
+        badgeClass: "bg-yellow-100 text-yellow-800",
         bgColor: "bg-yellow-50",
         borderColor: "border-yellow-500",
       };
     }
     return {
       label: "Upcoming",
-      color: "purple",
+      badgeClass: "bg-purple-100 text-purple-800",
       bgColor: "bg-purple-50",
       borderColor: "border-purple-500",
     };
@@ -231,7 +231,7 @@ export default function Dashboard() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span
-                                className={`text-xs font-semibold px-2 py-0.5 rounded-full bg-${urgency.color}-100 text-${urgency.color}-800`}
+                                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${urgency.badgeClass}`}
                               >
                                 {urgency.label}
                               </span>

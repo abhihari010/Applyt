@@ -198,7 +198,10 @@ public class ScheduledTaskService {
                     // Clean up company name - remove HTML tags, emojis, and arrows
                     String companyName = cells[1].trim()
                             .replaceAll("<[^>]*>", "") // Remove HTML tags
-                            .replaceAll("[↳🔽⬇️➡️⏩]", "") // Remove arrow/emoji characters
+                            .replaceAll("[\\u21B3\\uD83D\\uDD3D\\u2B07\\uFE0F\\u27A1\\uFE0F\\u23E9]", "") // Remove
+                                                                                                          // arrow and
+                                                                                                          // emoji
+                                                                                                          // characters
                             .trim();
                     app.setCompany(companyName);
 

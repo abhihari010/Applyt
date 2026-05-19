@@ -30,6 +30,9 @@ frontend/*.log
 *.swp
 *.swo
 
+# Codex local workspace configuration and repo-local skills
+.codex/
+
 # Package manager lock files (optional - uncomment if you want to ignore)
 # backend/pom.xml.lock
 # frontend/package-lock.json
