@@ -14,6 +14,7 @@ import {
 import api, { Application } from "../api";
 import ApplicationCard from "../components/ApplicationCard";
 import { useAuth } from "../hooks/useAuth";
+import { useBulkDelete } from "../hooks/useBulkDelete";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 import { AppShell, EmptyState, PageHeader, PageLoader } from "../components/AppShell";
 
@@ -95,11 +96,21 @@ export default function Applications() {
     user?.showArchivedApps,
   ]);
 
-  // Pagination
+  // Select all covers every filtered application, across pages.
+  const bulk = useBulkDelete({
+    items: filteredApplications,
+    noun: "application",
+    deleteOne: (app: Application) => api.delete(`/apps/${app.id}`),
+    onDeleted: () =>
+      queryClient.invalidateQueries({ queryKey: ["applications"] }),
+  });
+
+  // Pagination (clamped: deleting the whole last page must not strand us on an empty one)
   const totalPages = Math.ceil(filteredApplications.length / ITEMS_PER_PAGE);
+  const page = Math.min(currentPage, Math.max(totalPages, 1));
   const paginatedApplications = filteredApplications.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
   );
 
   const handleDelete = async (
@@ -267,6 +278,7 @@ export default function Applications() {
             />
           ) : (
             <>
+              {bulk.bar}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {paginatedApplications.map((application: Application, index) => (
                   <div
@@ -276,10 +288,17 @@ export default function Applications() {
                   >
                     <ApplicationCard
                       application={application}
+                      className="pl-11"
                       onClick={() =>
                         navigate(`/applications/${application.id}`)
                       }
                     />
+                    <div className="absolute left-3.5 top-4 flex">
+                      {bulk.checkbox(
+                        application,
+                        `Select ${application.role} at ${application.company}`,
+                      )}
+                    </div>
                     <button
                       onClick={(e) => handleDelete(application.id, e)}
                       className="icon-button absolute right-2 top-2 min-h-9 min-w-9 bg-white text-red-700 opacity-0 shadow-soft transition-opacity group-hover:opacity-100 focus:opacity-100"
@@ -295,8 +314,8 @@ export default function Applications() {
               {totalPages > 1 && (
                 <div className="mt-8 flex items-center justify-center gap-2">
                   <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 1}
                     className="icon-button border-neutral-300 bg-white"
                     aria-label="Previous page"
                   >
@@ -305,25 +324,25 @@ export default function Applications() {
 
                   <div className="flex gap-2">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (page) => (
+                      (pageNumber) => (
                         <button
-                          key={page}
-                          onClick={() => handlePageChange(page)}
+                          key={pageNumber}
+                          onClick={() => handlePageChange(pageNumber)}
                           className={`px-4 py-2 rounded-lg ${
-                            currentPage === page
+                            page === pageNumber
                               ? "bg-brand-700 text-white"
                               : "border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100"
                           }`}
                         >
-                          {page}
+                          {pageNumber}
                         </button>
                       )
                     )}
                   </div>
 
                   <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page === totalPages}
                     className="icon-button border-neutral-300 bg-white"
                     aria-label="Next page"
                   >

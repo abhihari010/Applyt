@@ -3,6 +3,7 @@ import { Paperclip, Download, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import api, { attachmentsApi } from "../../api";
 import FileUploader from "../FileUploader";
+import { useBulkDelete } from "../../hooks/useBulkDelete";
 
 interface AttachmentsTabProps {
   applicationId: string;
@@ -24,6 +25,17 @@ export default function AttachmentsTab({
         queryKey: ["attachments", applicationId],
       });
     },
+  });
+
+  const bulk = useBulkDelete({
+    items: attachments,
+    noun: "attachment",
+    deleteOne: (attachment) =>
+      attachmentsApi.delete(applicationId, attachment.id),
+    onDeleted: () =>
+      queryClient.invalidateQueries({
+        queryKey: ["attachments", applicationId],
+      }),
   });
 
   const downloadAttachment = async (attachmentId: number, fileName: string) => {
@@ -50,12 +62,14 @@ export default function AttachmentsTab({
       />
 
       <div className="space-y-3">
+        {bulk.bar}
         {attachments.map((attachment: any) => (
           <div
             key={attachment.id}
             className="bg-white border border-gray-200 rounded-lg p-4 flex justify-between items-center"
           >
             <div className="flex items-center gap-3">
+              {bulk.checkbox(attachment, `Select ${attachment.fileName}`)}
               <Paperclip className="h-5 w-5 text-gray-400" />
               <div>
                 <p className="font-medium text-gray-900">
