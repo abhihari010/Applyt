@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Bell, Trash2 } from "lucide-react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import api from "../../api";
+import { useBulkDelete } from "../../hooks/useBulkDelete";
 
 interface RemindersTabProps {
   applicationId: string;
@@ -73,6 +74,14 @@ export default function RemindersTab({
     },
   });
 
+  const bulk = useBulkDelete({
+    items: reminders,
+    noun: "reminder",
+    deleteOne: (reminder) =>
+      api.delete(`/apps/${applicationId}/reminders/${reminder.id}`),
+    onDeleted: () => queryClient.invalidateQueries({ queryKey: ["reminders"] }),
+  });
+
   return (
     <div className="space-y-4">
       <button
@@ -133,13 +142,15 @@ export default function RemindersTab({
       )}
 
       <div className="space-y-3">
+        {bulk.bar}
         {reminders.map((reminder: any) => {
           const urgency = getUrgency(reminder.remindAt);
           return (
             <div
               key={reminder.id}
-              className={`bg-white border-l-4 ${urgency.borderColor} ${urgency.bgColor} rounded-r-lg p-4 flex justify-between items-start`}
+              className={`bg-white border-l-4 ${urgency.borderColor} ${urgency.bgColor} rounded-r-lg p-4 flex justify-between items-start gap-3`}
             >
+              {bulk.checkbox(reminder, `Select reminder: ${reminder.message}`)}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span

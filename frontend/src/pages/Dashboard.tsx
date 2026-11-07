@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { format, isPast, isToday, isTomorrow } from "date-fns";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
+import { useBulkDelete } from "../hooks/useBulkDelete";
 import { AppShell, EmptyState, PageHeader, StatTile } from "../components/AppShell";
 import StatusBadge from "../components/StatusBadge";
 
@@ -81,6 +82,17 @@ export default function Dashboard() {
       tone: "accent" as const,
     },
   ];
+  const dueReminders = Array.isArray(reminders)
+    ? reminders.filter((r) => !r.completed).slice(0, 10)
+    : [];
+
+  const bulk = useBulkDelete({
+    items: dueReminders,
+    noun: "reminder",
+    deleteOne: (r: Reminder) => remindersApi.delete(r.applicationId, r.id),
+    onDeleted: () => queryClient.invalidateQueries({ queryKey: ["reminders"] }),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: ({ appId, id }: { appId: string; id: string }) =>
       remindersApi.delete(appId, id),
@@ -215,11 +227,10 @@ export default function Dashboard() {
               </div>
               <Bell className="h-5 w-5 text-accent-700" />
             </div>
-            {Array.isArray(reminders) && reminders.filter((r) => !r.completed).length > 0 ? (
+            {bulk.bar}
+            {dueReminders.length > 0 ? (
               <div className="max-h-96 space-y-3 overflow-y-auto pr-1">
-                {reminders
-                  .filter((r) => !r.completed)
-                  .slice(0, 10)
+                {dueReminders
                   .map((reminder) => {
                     const urgency = getUrgency(reminder.remindAt);
                     const app = getApplicationName(reminder.applicationId);
@@ -231,7 +242,8 @@ export default function Dashboard() {
                           navigate(`/applications/${reminder.applicationId}`)
                         }
                       >
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-start gap-3">
+                          {bulk.checkbox(reminder, `Select reminder: ${reminder.message}`)}
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span

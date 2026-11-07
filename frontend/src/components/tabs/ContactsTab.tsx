@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
 import { contactsApi } from "../../api";
+import { useBulkDelete } from "../../hooks/useBulkDelete";
 
 interface ContactsTabProps {
   applicationId: string;
@@ -54,6 +55,14 @@ export default function ContactsTab({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contacts", applicationId] });
     },
+  });
+
+  const bulk = useBulkDelete({
+    items: contacts,
+    noun: "contact",
+    deleteOne: (contact) => contactsApi.delete(applicationId, contact.id),
+    onDeleted: () =>
+      queryClient.invalidateQueries({ queryKey: ["contacts", applicationId] }),
   });
 
   return (
@@ -137,12 +146,14 @@ export default function ContactsTab({
       )}
 
       <div className="space-y-3">
+        {bulk.bar}
         {contacts.map((contact: any) => (
           <div
             key={contact.id}
-            className="bg-white border border-gray-200 rounded-lg p-4 flex justify-between items-start"
+            className="bg-white border border-gray-200 rounded-lg p-4 flex justify-between items-start gap-3"
           >
-            <div>
+            {bulk.checkbox(contact, `Select contact ${contact.name}`)}
+            <div className="flex-1">
               <h4 className="font-semibold text-gray-900">{contact.name}</h4>
               {contact.title && (
                 <p className="text-sm text-gray-600">{contact.title}</p>

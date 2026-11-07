@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { notesApi } from "../../api";
+import { useBulkDelete } from "../../hooks/useBulkDelete";
 
 interface NotesTabProps {
   applicationId: string;
@@ -30,6 +31,14 @@ export default function NotesTab({ applicationId, notes }: NotesTabProps) {
     },
   });
 
+  const bulk = useBulkDelete({
+    items: notes,
+    noun: "note",
+    deleteOne: (note) => notesApi.delete(applicationId, note.id),
+    onDeleted: () =>
+      queryClient.invalidateQueries({ queryKey: ["notes", applicationId] }),
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
@@ -50,11 +59,13 @@ export default function NotesTab({ applicationId, notes }: NotesTabProps) {
       </div>
 
       <div className="space-y-3">
+        {bulk.bar}
         {notes.map((note: any) => (
           <div
             key={note.id}
-            className="bg-gray-50 rounded-lg p-4 flex justify-between items-start"
+            className="bg-gray-50 rounded-lg p-4 flex justify-between items-start gap-3"
           >
+            {bulk.checkbox(note, `Select note: ${note.content}`)}
             <div className="flex-1">
               <p className="text-gray-700">{note.content}</p>
               <p className="text-xs text-gray-500 mt-2">
