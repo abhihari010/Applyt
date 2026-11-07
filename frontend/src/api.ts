@@ -1,39 +1,83 @@
 /// <reference types="vite/client" />
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+// In production /api is proxied through this site (see vercel.json) so session cookies are first-party.
+const API_BASE_URL = import.meta.env.DEV ? BACKEND_URL : "";
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
+    // The backend requires this on state-changing requests as CSRF protection.
+    "X-Requested-With": "XMLHttpRequest",
   },
 });
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("app_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Tokens are in httpOnly cookies that scripts can't read. This flag holds no secret, it only
+// records that a session may exist, so signed-out visitors don't wait on a call to the backend.
+const SESSION_FLAG = "app_session";
 
-// Handle 401 errors
+export const session = {
+  exists: () => localStorage.getItem(SESSION_FLAG) === "1",
+  mark: () => localStorage.setItem(SESSION_FLAG, "1"),
+  clear: () => localStorage.removeItem(SESSION_FLAG),
+};
+
+// A 401 on these means bad credentials or a dead session, so refreshing can't help.
+const NO_REFRESH_PATHS = [
+  "/auth/login",
+  "/auth/refresh",
+  "/auth/logout",
+  "/auth/oauth2/exchange",
+];
+
+// Requests failing together share one refresh, because refresh tokens are single-use.
+let refreshInFlight: Promise<unknown> | null = null;
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Only redirect if not already on login/signup page
+  async (error) => {
+    const request = error.config;
+    if (
+      error.response?.status !== 401 ||
+      !request ||
+      request._retried ||
+      NO_REFRESH_PATHS.some((path) => request.url?.startsWith(path))
+    ) {
+      return Promise.reject(error);
+    }
+
+    request._retried = true;
+    try {
+      refreshInFlight ??= api.post("/auth/refresh").finally(() => {
+        refreshInFlight = null;
+      });
+      await refreshInFlight;
+      return await api(request);
+    } catch {
+      session.clear();
+      // AuthContext handles the startup session check. Everywhere else the session just ended.
       const currentPath = window.location.pathname;
-      if (currentPath !== "/login" && currentPath !== "/signup") {
-        localStorage.removeItem("app_token");
+      if (
+        request.url !== "/auth/me" &&
+        currentPath !== "/login" &&
+        currentPath !== "/signup"
+      ) {
         window.location.href = "/login";
       }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
   },
 );
+
+// Job URLs must be http(s). Add the scheme to ones typed without it, like "acme.com/jobs".
+const withUrlScheme = <T extends { jobUrl?: string }>(data: T): T =>
+  data.jobUrl && !/^[a-z][a-z0-9+.-]*:/i.test(data.jobUrl)
+    ? { ...data, jobUrl: `https://${data.jobUrl}` }
+    : data;
 
 // Types
 export interface User {
@@ -130,7 +174,12 @@ export const authApi = {
     api.post<{ message: string }>("/auth/register", data),
 
   login: (data: { email: string; password: string }) =>
-    api.post<{ token: string; user: User }>("/auth/login", data),
+    api.post<{ user: User }>("/auth/login", data),
+
+  exchangeOAuthCode: (code: string) =>
+    api.post<{ user: User }>("/auth/oauth2/exchange", { code }),
+
+  logout: () => api.post("/auth/logout"),
 
   verifyEmail: (token: string) =>
     api.post("/auth/verify-email", {}, { params: { token } }),
@@ -183,12 +232,13 @@ export const applicationsApi = {
       totalElements: number;
     }>("/apps", { params }),
 
-  create: (data: Partial<Application>) => api.post<Application>("/apps", data),
+  create: (data: Partial<Application>) =>
+    api.post<Application>("/apps", withUrlScheme(data)),
 
   getById: (id: string) => api.get<Application>(`/apps/${id}`),
 
   update: (id: string, data: Partial<Application>) =>
-    api.put<Application>(`/apps/${id}`, data),
+    api.put<Application>(`/apps/${id}`, withUrlScheme(data)),
 
   delete: (id: string) => api.delete(`/apps/${id}`),
 

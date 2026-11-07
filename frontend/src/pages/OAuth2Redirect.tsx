@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldCheck } from "lucide-react";
@@ -9,13 +9,19 @@ export default function OAuth2Redirect() {
   const navigate = useNavigate();
   const { oauthLogin } = useAuth();
 
-  useEffect(() => {
-    const token = searchParams.get("token");
+  // The code is single-use, and this effect can run more than once (StrictMode, re-renders).
+  const exchanged = useRef(false);
 
-    if (token) {
-      oauthLogin(token)
+  useEffect(() => {
+    if (exchanged.current) return;
+    exchanged.current = true;
+
+    const code = searchParams.get("code");
+
+    if (code) {
+      oauthLogin(code)
         .then(() => {
-          navigate("/dashboard");
+          navigate("/dashboard", { replace: true });
         })
         .catch(() => {
           navigate("/login?error=oauth_failed");

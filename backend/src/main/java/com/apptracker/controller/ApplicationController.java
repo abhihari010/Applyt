@@ -3,8 +3,7 @@ package com.apptracker.controller;
 import com.apptracker.dto.*;
 import com.apptracker.service.*;
 import com.apptracker.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -18,10 +17,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/apps")
-@CrossOrigin(origins = "*")
 public class ApplicationController {
-
-    private static final Logger logger = LoggerFactory.getLogger(ApplicationController.class);
 
     private final ApplicationService applicationService;
     private final ImportService importService;
@@ -65,22 +61,9 @@ public class ApplicationController {
     @PostMapping
     public ResponseEntity<ApplicationDTO> createApplication(
             @AuthenticationPrincipal UUID userId,
-            @RequestBody CreateApplicationRequest request) {
-
-        logger.info("=== CREATE APPLICATION REQUEST ===");
-        logger.info("UserId from @AuthenticationPrincipal: {}", userId);
-        logger.info(
-                "Request body - Company: {}, Role: {}, Priority: {}, Status: {}, Location: {}, JobUrl: {}, DateApplied: {}",
-                request.getCompany(),
-                request.getRole(),
-                request.getPriority(),
-                request.getStatus(),
-                request.getLocation(),
-                request.getJobUrl(),
-                request.getDateApplied());
+            @Valid @RequestBody CreateApplicationRequest request) {
 
         ApplicationDTO app = applicationService.createApplication(userId, request);
-        logger.info("Application created successfully with ID: {}", app.getId());
         return ResponseEntity.ok(app);
     }
 
@@ -97,7 +80,7 @@ public class ApplicationController {
     public ResponseEntity<ApplicationDTO> updateApplication(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id,
-            @RequestBody CreateApplicationRequest request) {
+            @Valid @RequestBody CreateApplicationRequest request) {
 
         ApplicationDTO app = applicationService.updateApplication(userId, id, request);
         return ResponseEntity.ok(app);
@@ -116,7 +99,7 @@ public class ApplicationController {
     public ResponseEntity<ApplicationDTO> updateStatus(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id,
-            @RequestBody UpdateStatusRequest request) {
+            @Valid @RequestBody UpdateStatusRequest request) {
 
         ApplicationDTO app = applicationService.updateStatus(userId, id, request.getStatus());
         return ResponseEntity.ok(app);
@@ -136,7 +119,7 @@ public class ApplicationController {
     public ResponseEntity<Note> createNote(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id,
-            @RequestBody CreateNoteRequest request) {
+            @Valid @RequestBody CreateNoteRequest request) {
 
         Note note = noteService.createNote(userId, id, request);
         return ResponseEntity.ok(note);
@@ -165,7 +148,7 @@ public class ApplicationController {
     public ResponseEntity<Contact> createContact(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id,
-            @RequestBody CreateContactRequest request) {
+            @Valid @RequestBody CreateContactRequest request) {
 
         Contact contact = contactService.createContact(userId, id, request);
         return ResponseEntity.ok(contact);

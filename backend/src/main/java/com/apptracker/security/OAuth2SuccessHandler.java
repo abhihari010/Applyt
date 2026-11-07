@@ -2,6 +2,7 @@ package com.apptracker.security;
 
 import com.apptracker.model.User;
 import com.apptracker.repository.UserRepository;
+import com.apptracker.service.RefreshTokenService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,21 +19,21 @@ import java.io.IOException;
 
 /**
  * Handles successful OAuth2 authentication
- * Generates JWT token and redirects to frontend with token
+ * Redirects to the frontend with a one-time sign-in code
  */
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
     private final UserRepository userRepository;
-    private final JwtUtil jwtUtil;
+    private final RefreshTokenService refreshTokens;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
 
-    public OAuth2SuccessHandler(UserRepository userRepository, JwtUtil jwtUtil) {
+    public OAuth2SuccessHandler(UserRepository userRepository, RefreshTokenService refreshTokens) {
         this.userRepository = userRepository;
-        this.jwtUtil = jwtUtil;
+        this.refreshTokens = refreshTokens;
     }
 
     @Override
@@ -64,16 +65,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Find user in database by email
         User user = userRepository.findByEmail(email[0])
                 .orElseThrow(() -> {
-                    logger.error("User not found after OAuth2 login. Email: {}", email[0]);
-                    return new RuntimeException("User not found after OAuth2 login. Email: " + email[0]);
+                    logger.error("User not found after OAuth2 login");
+                    return new RuntimeException("User not found after OAuth2 login");
                 });
 
-        // Generate JWT token
-        String token = jwtUtil.generateToken(user.getId());
-
-        // Redirect to frontend with token
+        // URLs end up in history and logs, so send a one-time code the frontend exchanges for session cookies.
         String redirectUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/redirect")
-                .queryParam("token", token)
+                .queryParam("code", refreshTokens.issueOAuthCode(user.getId()))
                 .build()
                 .toUriString();
 

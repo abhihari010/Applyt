@@ -236,7 +236,8 @@ frontend
 ## Security
 
 - Environment variables for all sensitive data
-- JWT tokens with 24-hour expiration
+- Sessions in httpOnly cookies: 15-minute JWT access token, 30-day rotating refresh token stored only as a hash
+- CSRF protection through SameSite cookies and a required `X-Requested-With` header
 - Password reset tokens with 1-hour expiration
 - BCrypt hashing with salt rounds
 - CORS configuration for frontend domain
@@ -246,6 +247,15 @@ frontend
 - User ownership verification on all API endpoints
 
 ## Deployment
+
+`vercel.json` proxies `/api` to the backend so session cookies are first-party. If the backend URL changes, update it there.
+
+Backend environment variables this depends on:
+
+- `FRONTEND_URL`: the exact frontend origin, used for CORS, email links and the OAuth redirect
+- `TRUST_PROXY_HEADERS=true`: otherwise every user shares one rate limit bucket
+
+Keep `VITE_API_URL` set to the backend URL in Vercel. OAuth sign-in starts there directly.
 
 ### Production Checklist
 

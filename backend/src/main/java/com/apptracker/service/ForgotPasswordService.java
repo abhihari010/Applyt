@@ -6,17 +6,15 @@ import com.apptracker.model.PasswordResetToken;
 import com.apptracker.model.User;
 import com.apptracker.repository.PasswordResetTokenRepository;
 import com.apptracker.repository.UserRepository;
+import com.apptracker.util.TokenUtils;
+import com.apptracker.util.ValidationUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
-import java.security.SecureRandom;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
-import java.util.Base64;
 
 @Service
 public class ForgotPasswordService {
@@ -30,12 +28,16 @@ public class ForgotPasswordService {
     @Value("${app.frontend-url}")
     private String frontendBaseUrl;
 
+    private final RefreshTokenService refreshTokens;
+
     public ForgotPasswordService(UserRepository userRepository,
             PasswordResetTokenRepository tokenRepository,
-            EmailService emailService) {
+            EmailService emailService,
+            RefreshTokenService refreshTokens) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.emailService = emailService;
+        this.refreshTokens = refreshTokens;
     }
 
     public void requestPasswordReset(String email) {
@@ -44,11 +46,11 @@ public class ForgotPasswordService {
         }
 
         userRepository.findByEmail(email).ifPresent(user -> {
-            String token = generateSecureToken();
+            String token = TokenUtils.randomToken();
 
             PasswordResetToken resetToken = new PasswordResetToken();
             resetToken.setUserId(user.getId());
-            resetToken.setTokenHash(hashToken(token));
+            resetToken.setTokenHash(TokenUtils.sha256Hex(token));
             resetToken.setExpiresAt(OffsetDateTime.now().plusHours(TOKEN_EXPIRY_HOURS));
             tokenRepository.save(resetToken);
 
@@ -62,12 +64,14 @@ public class ForgotPasswordService {
             throw new BadRequestException("Token is required");
         }
 
-        if (newPassword == null || newPassword.length() < 8) {
-            throw new BadRequestException("Password must be at least 8 characters long");
+        try {
+            ValidationUtils.validatePasswordStrength(newPassword);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e.getMessage());
         }
 
         // Find token
-        String tokenHash = hashToken(token);
+        String tokenHash = TokenUtils.sha256Hex(token);
         PasswordResetToken resetToken = tokenRepository.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
 
@@ -96,6 +100,9 @@ public class ForgotPasswordService {
         // Mark token as used
         resetToken.setUsed(true);
         tokenRepository.save(resetToken);
+
+        // A reset may mean the account was compromised, so sign out every device.
+        refreshTokens.revokeAll(user.getId());
     }
 
     public boolean isValidToken(String token) {
@@ -103,37 +110,9 @@ public class ForgotPasswordService {
             return false;
         }
 
-        return tokenRepository.findByTokenHash(hashToken(token))
+        return tokenRepository.findByTokenHash(TokenUtils.sha256Hex(token))
                 .filter(t -> !t.isUsed() && t.getExpiresAt().isAfter(OffsetDateTime.now()))
                 .isPresent();
-    }
-
-    /**
-     * Generate a secure random token for password reset
-     */
-    private String generateSecureToken() {
-        SecureRandom random = new SecureRandom();
-        byte[] tokenBytes = new byte[32];
-        random.nextBytes(tokenBytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
-    }
-
-    private String hashToken(String token) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hex = new StringBuilder(hash.length * 2);
-            for (byte b : hash) {
-                String h = Integer.toHexString(0xff & b);
-                if (h.length() == 1) {
-                    hex.append('0');
-                }
-                hex.append(h);
-            }
-            return hex.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 not available", e);
-        }
     }
 
     /**
@@ -195,6 +174,6 @@ public class ForgotPasswordService {
                         </body>
                         </html>
                         """,
-                userName, resetLink, resetLink);
+                HtmlUtils.htmlEscape(userName), resetLink, resetLink);
     }
 }

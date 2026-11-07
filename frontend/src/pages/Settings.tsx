@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { authApi } from "../api";
+import { authApi, session } from "../api";
 import { useAuth } from "../hooks/useAuth";
 import DeleteAccountModal from "../components/DeleteAccountModal";
 import { AppShell, PageHeader } from "../components/AppShell";
@@ -166,7 +166,7 @@ export default function Settings() {
     setLoading(true);
     try {
       await authApi.deleteAccount();
-      localStorage.removeItem("app_token");
+      session.clear();
       window.location.href = "/login";
     } catch (error: any) {
       setMessage({

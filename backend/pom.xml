@@ -122,6 +122,20 @@
             <artifactId>bucket4j-core</artifactId>
             <version>8.1.1</version>
         </dependency>
+        <!-- Real Postgres for integration tests, no Docker needed. H2 can't parse V1__complete_schema.sql.
+             commons-io is excluded so this test dependency can't override the version commons-csv needs. -->
+        <dependency>
+            <groupId>io.zonky.test</groupId>
+            <artifactId>embedded-postgres</artifactId>
+            <version>2.0.7</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>

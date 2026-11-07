@@ -54,6 +54,14 @@ public class AttachmentService {
         // Verify ownership
         applicationService.getApplicationEntityById(userId, appId);
 
+        // Only accept keys from this application's folder, as issued by the presign step. Otherwise a
+        // client could attach another user's file, then download or delete it.
+        String key = request.getObjectKey();
+        String expectedPrefix = String.format("users/%s/apps/%s/", userId, appId);
+        if (key == null || !key.startsWith(expectedPrefix) || key.contains("..")) {
+            throw new BadRequestException("Invalid object key");
+        }
+
         Attachment attachment = new Attachment();
         attachment.setApplicationId(appId);
         attachment.setObjectKey(request.getObjectKey());
@@ -95,7 +103,12 @@ public class AttachmentService {
 
         // Verify ownership
         applicationService.getApplicationEntityById(userId, appId);
-        
+
+        // The attachment must belong to that application, or owning any application would allow deleting it.
+        if (!attachment.getApplicationId().equals(appId)) {
+            throw new ResourceNotFoundException("Attachment not found");
+        }
+
         // Delete from R2 first
         r2StorageService.deleteObject(attachment.getObjectKey());
         

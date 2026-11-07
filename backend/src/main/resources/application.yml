@@ -49,20 +49,10 @@ spring:
               - read:user
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
-logging:
-  level:
-    com.zaxxer.hikari: DEBUG
-    org.springframework.jdbc.datasource: DEBUG
-    org.springframework.boot.autoconfigure.jdbc: DEBUG
-    org.springframework.core.env: TRACE
-    org.springframework.security: DEBUG
-    com.apptracker.service.OAuth2Service: DEBUG
-    com.apptracker.security.OAuth2SuccessHandler: DEBUG
-
 spring.flyway:
   enabled: true
-  clean-disabled: false
-  clean-on-validation-error: true
+  # Never let Flyway erase data: a migration mismatch should stop startup, not wipe the database.
+  clean-disabled: true
   baseline-on-migrate: true
 
 jwt:
@@ -80,5 +70,9 @@ r2:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  auth:
+    # Secure cookies need HTTPS. Browsers other than Safari treat http://localhost as secure too.
+    cookie-secure: ${AUTH_COOKIE_SECURE:true}
+    cookie-same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
   security:
     trust-proxy-headers: ${TRUST_PROXY_HEADERS:false}

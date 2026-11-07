@@ -14,7 +14,8 @@ public class CreateApplicationRequest {
 
     private String location;
 
-    @URL(message = "Job URL must be a valid URL")
+    @URL(regexp = "^$|^https?://.*", flags = jakarta.validation.constraints.Pattern.Flag.CASE_INSENSITIVE,
+            message = "Job URL must be a valid http or https URL")
     private String jobUrl;
 
     @Pattern(regexp = "HIGH|MEDIUM|LOW", message = "Priority must be one of: HIGH, MEDIUM, LOW")

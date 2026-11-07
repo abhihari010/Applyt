@@ -78,7 +78,7 @@ public class ScheduledTaskService {
                 // than 30 days
                 List<ApplicationEntity> applicationsToArchive = applicationRepo.findAll().stream()
                         .filter(app -> app.getUserId().equals(user.getId()))
-                        .filter(app -> "REJECTED".equals(app.getStatus()))
+                        .filter(app -> app.getStatus() == ApplicationEntity.Status.REJECTED)
                         .filter(app -> !app.isArchived())
                         .filter(app -> app.getUpdatedAt() != null && app.getUpdatedAt().isBefore(cutoffDate))
                         .toList();
@@ -186,11 +186,13 @@ public class ScheduledTaskService {
             }
 
             if (line.startsWith("|") && !line.contains("---")) {
-                if (line.toLowerCase().contains("company") || line.toLowerCase().contains("role")) {
+                String[] cells = line.split("\\|");
+
+                // Skip the table header. Check its own cells, since postings can contain these words too.
+                if (cells.length > 2 && cells[1].trim().equalsIgnoreCase("company")
+                        && cells[2].trim().equalsIgnoreCase("role")) {
                     continue;
                 }
-
-                String[] cells = line.split("\\|");
 
                 if (cells.length >= 6) {
                     OpenJob app = new OpenJob();

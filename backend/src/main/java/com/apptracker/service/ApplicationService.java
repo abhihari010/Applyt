@@ -61,14 +61,19 @@ public class ApplicationService {
     public Page<ApplicationDTO> getApplications(UUID userId, String status, String query,
             OffsetDateTime from, OffsetDateTime to,
             Pageable pageable) {
+        // Parsed here, because inside the query below Spring would wrap a bad value in a different exception.
+        ApplicationEntity.Status statusFilter = status == null || status.isEmpty()
+                ? null
+                : ApplicationEntity.Status.valueOf(status);
+
         Specification<ApplicationEntity> spec = (root, criteriaQuery, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             predicates.add(cb.equal(root.get("userId"), userId));
             predicates.add(cb.equal(root.get("archived"), false));
 
-            if (status != null && !status.isEmpty()) {
-                predicates.add(cb.equal(root.get("status"), ApplicationEntity.Status.valueOf(status)));
+            if (statusFilter != null) {
+                predicates.add(cb.equal(root.get("status"), statusFilter));
             }
 
             if (query != null && !query.isEmpty()) {
@@ -117,8 +122,10 @@ public class ApplicationService {
         app.setLocation(request.getLocation());
         app.setJobUrl(request.getJobUrl());
         app.setDateApplied(request.getDateApplied());
-        app.setStatus(ApplicationEntity.Status.valueOf(request.getStatus()));
 
+        if (request.getStatus() != null) {
+            app.setStatus(ApplicationEntity.Status.valueOf(request.getStatus()));
+        }
         if (request.getPriority() != null) {
             app.setPriority(ApplicationEntity.Priority.valueOf(request.getPriority()));
         }

@@ -9,12 +9,15 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
 @Component
 public class JwtUtil {
+
+    public static final Duration ACCESS_TTL = Duration.ofMinutes(15);
 
     @Value("${jwt.secret:change-me-in-env}")
     private String secret;
@@ -32,7 +35,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(Date.from(now.plusSeconds(60 * 60 * 24 * 7)))
+                .setExpiration(Date.from(now.plus(ACCESS_TTL)))
                 .signWith(signingKey)
                 .compact();
     }

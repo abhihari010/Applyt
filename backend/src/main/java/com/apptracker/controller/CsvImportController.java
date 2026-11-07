@@ -1,10 +1,10 @@
 package com.apptracker.controller;
 
 import com.apptracker.dto.CsvImportResult;
-import com.apptracker.security.JwtUtil;
 import com.apptracker.service.CsvImportService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,16 +17,14 @@ import java.util.UUID;
 public class CsvImportController {
 
     private final CsvImportService csvImportService;
-    private final JwtUtil jwtUtil;
 
-    public CsvImportController(CsvImportService csvImportService, JwtUtil jwtUtil) {
+    public CsvImportController(CsvImportService csvImportService) {
         this.csvImportService = csvImportService;
-        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/csv")
     public ResponseEntity<?> importCsv(
-            @RequestHeader("Authorization") String authHeader,
+            @AuthenticationPrincipal UUID userId,
             @RequestParam("file") MultipartFile file) {
 
         try {
@@ -47,10 +45,6 @@ public class CsvImportController {
                 return ResponseEntity.badRequest()
                         .body(Map.of("error", "File size exceeds 5MB limit"));
             }
-
-            // Get user ID from token
-            String token = authHeader.substring(7);
-            UUID userId = jwtUtil.validateAndGetUserId(token);
 
             // Import the CSV
             CsvImportResult result = csvImportService.importApplications(userId, file);

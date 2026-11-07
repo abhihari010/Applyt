@@ -37,3 +37,4 @@ frontend/*.log
 # backend/pom.xml.lock
 # frontend/package-lock.json
 # frontend/yarn.lock
+.gstack/

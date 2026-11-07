@@ -32,9 +32,8 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(mimeMessage);
-            AppLogger.info("Email sent successfully to {}", to);
         } catch (MessagingException e) {
-            AppLogger.error("Failed to send email to {}", to, e);
+            AppLogger.error("Failed to send email", e);
         }
     }
 

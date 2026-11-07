@@ -1,18 +1,10 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useRef,
-  ReactNode,
-} from "react";
-import { authApi, User } from "./api";
+import React, { createContext, useState, useEffect, ReactNode } from "react";
+import { authApi, session, User } from "./api";
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  oauthLogin: (token: string) => Promise<void>;
+  oauthLogin: (code: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
   logout: () => void;
@@ -28,58 +20,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("app_token")
-  );
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(session.exists());
 
   useEffect(() => {
-    if (token) {
-      authApi
-        .getCurrentUser()
-        .then((response) => {
-          setUser(response.data);
-        })
-        .catch(() => {
-          localStorage.removeItem("app_token");
-          setToken(null);
-          setUser(null);
-        })
-        .finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
-      setUser(null);
-    }
-  }, [token]);
+    // Remove the token older versions kept in localStorage, where any XSS could read it.
+    localStorage.removeItem("app_token");
 
-  const login = async (email: string, password: string) => {
-    const response = await authApi.login({ email, password });
-    const { token: newToken, user: newUser } = response.data;
-    localStorage.setItem("app_token", newToken);
-    setToken(newToken);
+    if (!session.exists()) {
+      return;
+    }
+    authApi
+      .getCurrentUser()
+      .then((response) => setUser(response.data))
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const startSession = (newUser: User) => {
+    session.mark();
     setUser(newUser);
   };
 
-  const oauthLogin = async (jwtToken: string) => {
-    // Store the JWT token from OAuth2 redirect
-    localStorage.setItem("app_token", jwtToken);
-    setToken(jwtToken);
+  const login = async (email: string, password: string) => {
+    const response = await authApi.login({ email, password });
+    startSession(response.data.user);
+  };
 
-    // Fetch user details using the token
-    const response = await authApi.getCurrentUser();
-    setUser(response.data);
+  const oauthLogin = async (code: string) => {
+    const response = await authApi.exchangeOAuthCode(code);
+    startSession(response.data.user);
   };
 
   const register = async (name: string, email: string, password: string) => {
-    // Register returns only a message, no token yet
+    // Register returns only a message, no session yet
     await authApi.register({ name, email, password });
     // User will be redirected to verify email page
   };
 
   const logout = () => {
-    localStorage.removeItem("app_token");
-    setToken(null);
+    session.clear();
     setUser(null);
+    // Update the UI right away. The server call revokes the session and clears its cookies.
+    authApi.logout().catch(() => undefined);
   };
 
   const verifyEmail = async (emailToken: string) => {
@@ -88,7 +70,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const refreshUser = async () => {
-    if (token) {
+    if (session.exists()) {
       const response = await authApi.getCurrentUser();
       setUser(response.data);
     }
@@ -98,7 +80,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     <AuthContext.Provider
       value={{
         user,
-        token,
         login,
         oauthLogin,
         register,

@@ -59,6 +59,10 @@ public class NoteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
         // Verify ownership
         applicationService.getApplicationEntityById(userId, appId);
+        // The note must belong to that application, or owning any application would allow deleting it.
+        if (!note.getApplicationId().equals(appId)) {
+            throw new ResourceNotFoundException("Note not found");
+        }
         noteRepository.delete(note);
     }
 }

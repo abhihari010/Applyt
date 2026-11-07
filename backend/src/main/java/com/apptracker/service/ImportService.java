@@ -3,20 +3,26 @@ package com.apptracker.service;
 import com.apptracker.dto.*;
 
 import org.springframework.stereotype.Service;
+import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.Jsoup;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class ImportService {
+    private static final int MAX_REDIRECTS = 5;
+
     public ImportResponse importApplication(UUID userId, ImportRequest importRequest) {
         String url = importRequest.getExternalSource();
 
@@ -55,34 +61,64 @@ public class ImportService {
                 return false;
             }
 
-            // Block localhost and private IPs
-            if (host.equals("localhost") ||
-                    host.equals("127.0.0.1") ||
-                    host.startsWith("10.") ||
-                    host.startsWith("192.168.") ||
-                    host.startsWith("172.16.") ||
-                    host.startsWith("172.17.") ||
-                    host.startsWith("172.18.") ||
-                    host.startsWith("172.19.") ||
-                    host.startsWith("172.20.") ||
-                    host.startsWith("172.21.") ||
-                    host.startsWith("172.22.") ||
-                    host.startsWith("172.23.") ||
-                    host.startsWith("172.24.") ||
-                    host.startsWith("172.25.") ||
-                    host.startsWith("172.26.") ||
-                    host.startsWith("172.27.") ||
-                    host.startsWith("172.28.") ||
-                    host.startsWith("172.29.") ||
-                    host.startsWith("172.30.") ||
-                    host.startsWith("172.31.")) {
-                return false;
+            // Check what the host resolves to, since any public name can point at an internal address.
+            // ponytail: the fetch resolves DNS again, so a rebinding attack could still slip through.
+            // Pin the checked IP in the connection if this ever fetches from a network with sensitive services.
+            for (InetAddress address : resolve(host)) {
+                if (isInternal(address)) {
+                    return false;
+                }
             }
 
             return true;
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException | UnknownHostException e) {
             return false;
         }
+    }
+
+    InetAddress[] resolve(String host) throws UnknownHostException {
+        return InetAddress.getAllByName(host);
+    }
+
+    private static boolean isInternal(InetAddress address) {
+        if (address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress() || address.isMulticastAddress()) {
+            return true;
+        }
+        byte[] bytes = address.getAddress();
+        if (bytes.length == 4) {
+            int first = bytes[0] & 0xff;
+            int second = bytes[1] & 0xff;
+            return first == 0 || (first == 100 && second >= 64 && second <= 127); // 0.0.0.0/8, carrier-grade NAT
+        }
+        return (bytes[0] & 0xfe) == 0xfc; // IPv6 unique local, fc00::/7
+    }
+
+    /** Follows redirects by hand so every hop gets the same check as the original URL. */
+    private Document fetchPage(String url) throws IOException {
+        String current = url;
+        for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
+            Connection.Response response = fetch(current);
+            String location = response.header("Location");
+            if (response.statusCode() < 300 || response.statusCode() >= 400 || location == null) {
+                return response.parse();
+            }
+            current = URI.create(current).resolve(location).toString();
+            if (!isValidUrl(current)) {
+                throw new IOException("Redirect to a disallowed address");
+            }
+        }
+        throw new IOException("Too many redirects");
+    }
+
+    Connection.Response fetch(String url) throws IOException {
+        return Jsoup.connect(url)
+                .userAgent(
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                .timeout(5000)
+                .maxBodySize(1024 * 1024) // 1MB limit
+                .followRedirects(false)
+                .execute();
     }
 
     private ImportResponse parseWebpageData(String url) {
@@ -90,14 +126,7 @@ public class ImportService {
         finalResponse.setJobUrl(url);
 
         try {
-            Document doc = Jsoup.connect(url)
-                    .userAgent(
-                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .timeout(5000)
-                    .maxBodySize(1024 * 1024) // 1MB limit
-                    .followRedirects(true)
-                    .execute()
-                    .parse();
+            Document doc = fetchPage(url);
 
             // Try all three strategies and collect results
             ImportResponse jsonLdResult = new ImportResponse();
@@ -189,7 +218,7 @@ public class ImportService {
 
             return finalResponse;
 
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             finalResponse.addWarning("Could not fetch the page. Site may block automated access or require login.");
             return finalResponse;
         } catch (Exception e) {

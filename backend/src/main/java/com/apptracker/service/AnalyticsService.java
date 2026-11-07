@@ -2,6 +2,7 @@ package com.apptracker.service;
 
 import java.time.DayOfWeek;
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -44,10 +45,12 @@ public class AnalyticsService {
         analytics.put("appsPerWeek", appsPerWeek);
 
         // Conversion rates
+        // Everything except SAVED was applied to. Rejections count, or offer rates come out far too high.
         long totalApplied = statusCounts.getOrDefault("APPLIED", 0L) +
                 statusCounts.getOrDefault("OA", 0L) +
                 statusCounts.getOrDefault("INTERVIEW", 0L) +
-                statusCounts.getOrDefault("OFFER", 0L);
+                statusCounts.getOrDefault("OFFER", 0L) +
+                statusCounts.getOrDefault("REJECTED", 0L);
 
         long interviews = statusCounts.getOrDefault("INTERVIEW", 0L) + statusCounts.getOrDefault("OFFER", 0L);
         long offers = statusCounts.getOrDefault("OFFER", 0L);
@@ -62,13 +65,15 @@ public class AnalyticsService {
     }
 
     private Map<String, Long> calculateAppsPerWeek(List<ApplicationEntity> apps) {
-        OffsetDateTime twelveWeeksAgo = OffsetDateTime.now().minusWeeks(12)
-                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        // Twelve buckets ending with the current week.
+        OffsetDateTime firstWeek = OffsetDateTime.now().minusWeeks(11)
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                .truncatedTo(ChronoUnit.DAYS);
 
         Map<String, Long> weeklyCount = new LinkedHashMap<>();
 
         for (int i = 0; i < 12; i++) {
-            OffsetDateTime weekStart = twelveWeeksAgo.plusWeeks(i);
+            OffsetDateTime weekStart = firstWeek.plusWeeks(i);
             OffsetDateTime weekEnd = weekStart.plusWeeks(1);
 
             long count = apps.stream()

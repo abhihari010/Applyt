@@ -77,6 +77,10 @@ public class ContactService {
                 .orElseThrow(() -> new ResourceNotFoundException("Contact not found"));
         // Verify ownership
         applicationService.getApplicationEntityById(userId, appId);
+        // The contact must belong to that application, or owning any application would allow deleting it.
+        if (!contact.getApplicationId().equals(appId)) {
+            throw new ResourceNotFoundException("Contact not found");
+        }
         contactRepository.delete(contact);
     }
 }
