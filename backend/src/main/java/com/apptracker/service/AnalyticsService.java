@@ -47,10 +47,12 @@ public class AnalyticsService {
         long totalApplied = statusCounts.getOrDefault("APPLIED", 0L) +
                 statusCounts.getOrDefault("OA", 0L) +
                 statusCounts.getOrDefault("INTERVIEW", 0L) +
-                statusCounts.getOrDefault("OFFER", 0L);
+                statusCounts.getOrDefault("OFFER", 0L) +
+                statusCounts.getOrDefault("ACCEPTED", 0L);
 
-        long interviews = statusCounts.getOrDefault("INTERVIEW", 0L) + statusCounts.getOrDefault("OFFER", 0L);
-        long offers = statusCounts.getOrDefault("OFFER", 0L);
+        // An accepted application also reached the interview and offer stages
+        long offers = statusCounts.getOrDefault("OFFER", 0L) + statusCounts.getOrDefault("ACCEPTED", 0L);
+        long interviews = statusCounts.getOrDefault("INTERVIEW", 0L) + offers;
 
         Map<String, Double> conversionRates = new HashMap<>();
         conversionRates.put("appliedToInterview", totalApplied > 0 ? (double) interviews / totalApplied * 100 : 0);

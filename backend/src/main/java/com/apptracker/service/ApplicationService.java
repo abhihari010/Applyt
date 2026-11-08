@@ -60,12 +60,14 @@ public class ApplicationService {
 
     public Page<ApplicationDTO> getApplications(UUID userId, String status, String query,
             OffsetDateTime from, OffsetDateTime to,
-            Pageable pageable) {
+            boolean includeArchived, Pageable pageable) {
         Specification<ApplicationEntity> spec = (root, criteriaQuery, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             predicates.add(cb.equal(root.get("userId"), userId));
-            predicates.add(cb.equal(root.get("archived"), false));
+            if (!includeArchived) {
+                predicates.add(cb.equal(root.get("archived"), false));
+            }
 
             if (status != null && !status.isEmpty()) {
                 predicates.add(cb.equal(root.get("status"), ApplicationEntity.Status.valueOf(status)));

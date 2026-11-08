@@ -55,10 +55,14 @@ public class NoteService {
     }
 
     public void deleteNote(UUID userId, UUID appId, UUID noteId) {
-        Note note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
         // Verify ownership
         applicationService.getApplicationEntityById(userId, appId);
+        Note note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
+        // Verify the note belongs to this application
+        if (!note.getApplicationId().equals(appId)) {
+            throw new ResourceNotFoundException("Note not found");
+        }
         noteRepository.delete(note);
     }
 }

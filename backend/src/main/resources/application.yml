@@ -49,20 +49,9 @@ spring:
               - read:user
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
-logging:
-  level:
-    com.zaxxer.hikari: DEBUG
-    org.springframework.jdbc.datasource: DEBUG
-    org.springframework.boot.autoconfigure.jdbc: DEBUG
-    org.springframework.core.env: TRACE
-    org.springframework.security: DEBUG
-    com.apptracker.service.OAuth2Service: DEBUG
-    com.apptracker.security.OAuth2SuccessHandler: DEBUG
-
 spring.flyway:
   enabled: true
-  clean-disabled: false
-  clean-on-validation-error: true
+  clean-disabled: true
   baseline-on-migrate: true
 
 jwt:

@@ -180,10 +180,10 @@ public class CsvImportService {
             case "REJECTED":
             case "DECLINED":
             case "NOT_SELECTED":
-                return "REJECTED";
+                // No withdrawn status exists, so treat it as closed
             case "WITHDRAWN":
             case "CANCELLED":
-                return "WITHDRAWN";
+                return "REJECTED";
             default:
                 // If it matches a valid status exactly, use it
                 try {

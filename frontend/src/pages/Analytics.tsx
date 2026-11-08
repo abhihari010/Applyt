@@ -40,7 +40,7 @@ const STATUS_COLORS: Record<string, string> = {
   INTERVIEW: "#d97706",
   OFFER: "#059669",
   REJECTED: "#dc2626",
-  ACCEPTED: "#059669",
+  ACCEPTED: "#047857",
 };
 
 export default function Analytics() {
@@ -109,13 +109,13 @@ export default function Analytics() {
   // Conversion metrics
   const totalApps = apps.length;
   const appliedCount = apps.filter((app: Application) =>
-    ["APPLIED", "OA", "INTERVIEW", "OFFER"].includes(app.status),
+    ["APPLIED", "OA", "INTERVIEW", "OFFER", "ACCEPTED"].includes(app.status),
   ).length;
   const interviewedCount = apps.filter((app: Application) =>
-    ["INTERVIEW", "OFFER"].includes(app.status),
+    ["INTERVIEW", "OFFER", "ACCEPTED"].includes(app.status),
   ).length;
   const offerCount = apps.filter((app: Application) =>
-    ["OFFER"].includes(app.status),
+    ["OFFER", "ACCEPTED"].includes(app.status),
   ).length;
 
   const interviewRate =
@@ -132,13 +132,15 @@ export default function Analytics() {
   // New Metrics for Preview Match
   // Response Rate: % of applications that got past "Applied" status
   const respondedApps = apps.filter((app: Application) =>
-    ["OA", "INTERVIEW", "OFFER", "REJECTED"].includes(app.status),
+    ["OA", "INTERVIEW", "OFFER", "ACCEPTED", "REJECTED"].includes(app.status),
   ).length;
   const responseRate =
     totalApps > 0 ? ((respondedApps / totalApps) * 100).toFixed(0) : "0";
 
   // Avg Time to Offer: Days between dateApplied and offer status
-  const offeredApps = apps.filter((app: Application) => app.status === "OFFER");
+  const offeredApps = apps.filter((app: Application) =>
+    ["OFFER", "ACCEPTED"].includes(app.status),
+  );
   const avgTimeToOffer =
     offeredApps.length > 0
       ? Math.round(

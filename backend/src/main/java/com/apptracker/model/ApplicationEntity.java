@@ -46,7 +46,7 @@ public class ApplicationEntity {
     private OffsetDateTime updatedAt;
 
     public enum Status {
-        SAVED, APPLIED, OA, INTERVIEW, OFFER, REJECTED
+        SAVED, APPLIED, OA, INTERVIEW, OFFER, ACCEPTED, REJECTED
     }
 
     public enum Priority {

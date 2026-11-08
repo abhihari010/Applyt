@@ -40,6 +40,7 @@ const STATUSES = [
   { id: "OA", label: "Online Assessment" },
   { id: "INTERVIEW", label: "Interview" },
   { id: "OFFER", label: "Offer" },
+  { id: "ACCEPTED", label: "Accepted" },
   { id: "REJECTED", label: "Rejected" },
 ];
 
@@ -133,6 +134,7 @@ export default function ApplicationDetail() {
   });
 
   const handleEdit = () => {
+    updateMutation.reset();
     setEditForm({
       company: application.company,
       role: application.role,
@@ -205,177 +207,181 @@ export default function ApplicationDetail() {
 
   return (
     <AppShell maxWidth="6xl">
-          {/* Header */}
-          <div className="surface mb-6 p-5 sm:p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex-1">
-                {isEditing ? (
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      value={editForm.role}
-                      onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
-                          role: e.target.value,
-                        })
-                      }
-                      className="field text-2xl font-bold"
-                    />
-                    <input
-                      type="text"
-                      value={editForm.company}
-                      onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
-                          company: e.target.value,
-                        })
-                      }
-                      className="field text-lg"
-                    />
-                  </div>
-                ) : (
-                  <>
-                    <p className="kicker mb-2">Application detail</p>
-                    <h1 className="text-3xl font-bold text-neutral-950">
-                      {application.role}
-                    </h1>
-                    <div className="mt-2 flex items-center gap-2 text-lg text-neutral-600">
-                      <Building2 className="h-5 w-5 text-brand-700" />
-                      <span>{application.company}</span>
-                    </div>
-                  </>
-                )}
-
-                <div className="flex items-center gap-4 mt-4">
-                  {isEditing ? (
-                    <>
-                      <select
-                        value={editForm.status}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, status: e.target.value })
-                        }
-                        className="field"
-                      >
-                        {STATUSES.map((status) => (
-                          <option key={status.id} value={status.id}>
-                            {status.label}
-                          </option>
-                        ))}
-                      </select>
-                      <select
-                        value={editForm.priority}
-                        onChange={(e) =>
-                          setEditForm({ ...editForm, priority: e.target.value })
-                        }
-                        className="field"
-                      >
-                        <option value="LOW">Low</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="HIGH">High</option>
-                        <option value="URGENT">Urgent</option>
-                      </select>
-                    </>
-                  ) : (
-                    <>
-                      <StatusBadge status={application.status} />
-                      <PriorityBadge priority={application.priority} />
-                    </>
-                  )}
+      {/* Header */}
+      <div className="surface mb-6 p-5 sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex-1">
+            {isEditing ? (
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  value={editForm.role}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      role: e.target.value,
+                    })
+                  }
+                  className="field text-2xl font-bold"
+                />
+                <input
+                  type="text"
+                  value={editForm.company}
+                  onChange={(e) =>
+                    setEditForm({
+                      ...editForm,
+                      company: e.target.value,
+                    })
+                  }
+                  className="field text-lg"
+                />
+              </div>
+            ) : (
+              <>
+                <p className="kicker mb-2">Application detail</p>
+                <h1 className="text-3xl font-bold text-neutral-950">
+                  {application.role}
+                </h1>
+                <div className="mt-2 flex items-center gap-2 text-lg text-neutral-600">
+                  <Building2 className="h-5 w-5 text-brand-700" />
+                  <span>{application.company}</span>
                 </div>
-              </div>
+              </>
+            )}
 
-              <div className="flex flex-wrap items-center gap-2">
-                {isEditing ? (
-                  <>
-                    <button
-                      onClick={handleSave}
-                      disabled={updateMutation.isPending}
-                      className="btn-primary"
-                    >
-                      <Save className="h-4 w-4" />
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setIsEditing(false)}
-                      className="btn-secondary"
-                    >
-                      <X className="h-4 w-4" />
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={handleEdit}
-                      className="btn-primary"
-                    >
-                      <Edit className="h-4 w-4" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={(e) => handleDelete(e, application)}
-                      disabled={deleteMutation.isPending}
-                      className="btn-danger"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="surface overflow-hidden">
-            <div className="border-b border-neutral-200">
-              <nav className="flex overflow-x-auto p-1">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`applet-button flex min-h-11 items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold ${
-                      activeTab === tab.id
-                        ? "bg-brand-700 text-white"
-                        : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
-                    }`}
+            <div className="flex items-center gap-4 mt-4">
+              {isEditing ? (
+                <>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, status: e.target.value })
+                    }
+                    className="field"
                   >
-                    <tab.icon className="h-4 w-4" />
-                    {tab.label}
-                  </button>
-                ))}
-              </nav>
-            </div>
-
-            <div className="p-5 sm:p-6">
-              {activeTab === "details" && (
-                <DetailsTab
-                  application={application}
-                  isEditing={isEditing}
-                  editForm={editForm}
-                  setEditForm={setEditForm}
-                />
-              )}
-              {activeTab === "notes" && (
-                <NotesTab applicationId={id!} notes={notes} />
-              )}
-              {activeTab === "contacts" && (
-                <ContactsTab applicationId={id!} contacts={contacts} />
-              )}
-              {activeTab === "reminders" && (
-                <RemindersTab applicationId={id!} reminders={reminders} />
-              )}
-              {activeTab === "attachments" && (
-                <AttachmentsTab applicationId={id!} attachments={attachments} />
-              )}
-              {activeTab === "activity" && (
-                <ActivityTab
-                  activities={Array.isArray(activities) ? activities : []}
-                />
+                    {STATUSES.map((status) => (
+                      <option key={status.id} value={status.id}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={editForm.priority}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, priority: e.target.value })
+                    }
+                    className="field"
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                  </select>
+                </>
+              ) : (
+                <>
+                  <StatusBadge status={application.status} />
+                  <PriorityBadge priority={application.priority} />
+                </>
               )}
             </div>
           </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  disabled={updateMutation.isPending}
+                  className="btn-primary"
+                >
+                  <Save className="h-4 w-4" />
+                  Save
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="btn-secondary"
+                >
+                  <X className="h-4 w-4" />
+                  Cancel
+                </button>
+                {updateMutation.isError && (
+                  <p className="text-red-600 text-sm">
+                    {Object.values<string>(
+                      (updateMutation.error as any).response?.data?.errors ??
+                        {},
+                    )[0] ?? "Could not save changes"}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <button onClick={handleEdit} className="btn-primary">
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={(e) => handleDelete(e, application)}
+                  disabled={deleteMutation.isPending}
+                  className="btn-danger"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="surface overflow-hidden">
+        <div className="border-b border-neutral-200">
+          <nav className="flex overflow-x-auto p-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`applet-button flex min-h-11 items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold ${
+                  activeTab === tab.id
+                    ? "bg-brand-700 text-white"
+                    : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
+                }`}
+              >
+                <tab.icon className="h-4 w-4" />
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="p-5 sm:p-6">
+          {activeTab === "details" && (
+            <DetailsTab
+              application={application}
+              isEditing={isEditing}
+              editForm={editForm}
+              setEditForm={setEditForm}
+            />
+          )}
+          {activeTab === "notes" && (
+            <NotesTab applicationId={id!} notes={notes} />
+          )}
+          {activeTab === "contacts" && (
+            <ContactsTab applicationId={id!} contacts={contacts} />
+          )}
+          {activeTab === "reminders" && (
+            <RemindersTab applicationId={id!} reminders={reminders} />
+          )}
+          {activeTab === "attachments" && (
+            <AttachmentsTab applicationId={id!} attachments={attachments} />
+          )}
+          {activeTab === "activity" && (
+            <ActivityTab
+              activities={Array.isArray(activities) ? activities : []}
+            />
+          )}
+        </div>
+      </div>
       <ConfirmDeleteModal
         isOpen={deleteModalOpen}
         onClose={() => {

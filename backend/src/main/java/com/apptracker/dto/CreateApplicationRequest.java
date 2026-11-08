@@ -14,13 +14,13 @@ public class CreateApplicationRequest {
 
     private String location;
 
-    @URL(message = "Job URL must be a valid URL")
+    @URL(regexp = "^$|^https?://.*", flags = Pattern.Flag.CASE_INSENSITIVE, message = "Job URL must be a valid http or https URL")
     private String jobUrl;
 
     @Pattern(regexp = "HIGH|MEDIUM|LOW", message = "Priority must be one of: HIGH, MEDIUM, LOW")
     private String priority;
 
-    @Pattern(regexp = "SAVED|APPLIED|OA|INTERVIEW|OFFER|REJECTED", message = "Invalid status")
+    @Pattern(regexp = "SAVED|APPLIED|OA|INTERVIEW|OFFER|ACCEPTED|REJECTED", message = "Invalid status")
     private String status;
 
     private OffsetDateTime dateApplied;

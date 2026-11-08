@@ -73,10 +73,14 @@ public class ContactService {
     }
 
     public void deleteContact(UUID userId, UUID appId, UUID contactId) {
-        Contact contact = contactRepository.findById(contactId)
-                .orElseThrow(() -> new ResourceNotFoundException("Contact not found"));
         // Verify ownership
         applicationService.getApplicationEntityById(userId, appId);
+        Contact contact = contactRepository.findById(contactId)
+                .orElseThrow(() -> new ResourceNotFoundException("Contact not found"));
+        // Verify the contact belongs to this application
+        if (!contact.getApplicationId().equals(appId)) {
+            throw new ResourceNotFoundException("Contact not found");
+        }
         contactRepository.delete(contact);
     }
 }

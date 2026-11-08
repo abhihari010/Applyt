@@ -11,14 +11,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.validation.Valid;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/apps")
-@CrossOrigin(origins = "*")
 public class ApplicationController {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationController.class);
@@ -54,30 +53,20 @@ public class ApplicationController {
             @RequestParam(required = false) String q,
             @RequestParam(required = false) OffsetDateTime from,
             @RequestParam(required = false) OffsetDateTime to,
+            @RequestParam(defaultValue = "false") boolean includeArchived,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "1000") int size) {
 
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<ApplicationDTO> apps = applicationService.getApplications(userId, status, q, from, to, pageRequest);
+        PageRequest pageRequest = PageRequest.of(page, Math.min(size, 1000), Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<ApplicationDTO> apps = applicationService.getApplications(userId, status, q, from, to, includeArchived,
+                pageRequest);
         return ResponseEntity.ok(apps);
     }
 
     @PostMapping
     public ResponseEntity<ApplicationDTO> createApplication(
             @AuthenticationPrincipal UUID userId,
-            @RequestBody CreateApplicationRequest request) {
-
-        logger.info("=== CREATE APPLICATION REQUEST ===");
-        logger.info("UserId from @AuthenticationPrincipal: {}", userId);
-        logger.info(
-                "Request body - Company: {}, Role: {}, Priority: {}, Status: {}, Location: {}, JobUrl: {}, DateApplied: {}",
-                request.getCompany(),
-                request.getRole(),
-                request.getPriority(),
-                request.getStatus(),
-                request.getLocation(),
-                request.getJobUrl(),
-                request.getDateApplied());
+            @Valid @RequestBody CreateApplicationRequest request) {
 
         ApplicationDTO app = applicationService.createApplication(userId, request);
         logger.info("Application created successfully with ID: {}", app.getId());
@@ -97,7 +86,7 @@ public class ApplicationController {
     public ResponseEntity<ApplicationDTO> updateApplication(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id,
-            @RequestBody CreateApplicationRequest request) {
+            @Valid @RequestBody CreateApplicationRequest request) {
 
         ApplicationDTO app = applicationService.updateApplication(userId, id, request);
         return ResponseEntity.ok(app);

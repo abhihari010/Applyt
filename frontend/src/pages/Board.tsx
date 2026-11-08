@@ -24,6 +24,7 @@ const STATUSES = [
   { id: "OA", label: "Assessment", color: "bg-accent-50 text-accent-800" },
   { id: "INTERVIEW", label: "Interview", color: "bg-amber-50 text-amber-800" },
   { id: "OFFER", label: "Offer", color: "bg-green-50 text-green-800" },
+  { id: "ACCEPTED", label: "Accepted", color: "bg-emerald-50 text-emerald-800" },
   { id: "REJECTED", label: "Rejected", color: "bg-red-50 text-red-800" },
 ];
 
@@ -257,7 +258,7 @@ export default function Board() {
             onDragCancel={handleDragCancel}
           >
             {/* Grid Layout */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
               {STATUSES.map((status) => (
                 <Column
                   key={status.id}

@@ -78,7 +78,7 @@ export default function DetailsTab({
               <span>{application.location}</span>
             </div>
           )}
-          {application.jobUrl && (
+          {application.jobUrl && /^https?:\/\//i.test(application.jobUrl) && (
             <div className="flex items-center gap-2 text-gray-700">
               <LinkIcon className="h-5 w-5 text-gray-400" />
               <a

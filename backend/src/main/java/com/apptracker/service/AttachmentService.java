@@ -51,6 +51,11 @@ public class AttachmentService {
 
     @Transactional
     public Attachment confirmAttachment(UUID userId, UUID appId, ConfirmAttachmentRequest request) {
+        String key = request.getObjectKey();
+        String prefix = String.format("users/%s/apps/%s/", userId, appId);
+        if (key == null || !key.startsWith(prefix) || key.contains("../")) {
+            throw new BadRequestException("Invalid object key");
+        }
         // Verify ownership
         applicationService.getApplicationEntityById(userId, appId);
 
@@ -90,15 +95,19 @@ public class AttachmentService {
     }
 
     public void deleteAttachment(UUID userId, UUID appId, UUID attachmentId) {
+        // Verify ownership
+        applicationService.getApplicationEntityById(userId, appId);
         Attachment attachment = attachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Attachment not found"));
 
-        // Verify ownership
-        applicationService.getApplicationEntityById(userId, appId);
-        
+        // Verify the attachment belongs to this application
+        if (!attachment.getApplicationId().equals(appId)) {
+            throw new ResourceNotFoundException("Attachment not found");
+        }
+
         // Delete from R2 first
         r2StorageService.deleteObject(attachment.getObjectKey());
-        
+
         // Then delete from database
         attachmentRepository.delete(attachment);
 

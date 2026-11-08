@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -80,7 +81,6 @@ public class ReminderService {
     public Reminder completeReminder(UUID userId, UUID reminderId) {
         Reminder reminder = reminderRepository.findById(reminderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder not found"));
-
         // Verify ownership through application
         applicationService.getApplicationEntityById(userId, reminder.getApplicationId());
 
@@ -90,11 +90,15 @@ public class ReminderService {
 
     @Transactional
     public void deleteReminder(UUID userId, UUID appId, UUID reminderId) {
+        // Verify ownership
+        applicationService.getApplicationEntityById(userId, appId);
         Reminder reminder = reminderRepository.findById(reminderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder not found"));
 
-        // Verify ownership through application
-        applicationService.getApplicationEntityById(userId, appId);
+        // Verify the reminder belongs to this application
+        if (!reminder.getApplicationId().equals(appId)) {
+            throw new ResourceNotFoundException("Reminder not found");
+        }
 
         reminderRepository.delete(reminder);
     }
@@ -132,7 +136,7 @@ public class ReminderService {
                         if (user.isEmailNotifications()) {
                             sendReminderEmail(user, reminder, application);
                         } else {
-                            logger.debug("Skipping email for user {} - notifications disabled", user.getEmail());
+                            logger.debug("Skipping email for user {} - notifications disabled", user.getId());
                         }
                     });
                 });
@@ -153,10 +157,10 @@ public class ReminderService {
                     "Reminder: " + application.getCompany() + " - " + application.getRole(),
                     emailBody);
 
-            logger.info("Reminder email sent successfully to {}", user.getEmail());
+            logger.info("Reminder email sent successfully to {}", user.getId());
 
         } catch (Exception e) {
-            logger.error("Failed to send reminder email to {}: {}", user.getEmail(), e.getMessage(), e);
+            logger.error("Failed to send reminder email to {}: {}", user.getId(), e.getMessage(), e);
         }
     }
 
@@ -203,11 +207,12 @@ public class ReminderService {
                         </body>
                         </html>
                         """,
-                userName,
-                application.getCompany(),
-                application.getRole(),
+                // User-entered text is escaped so it shows as text instead of becoming HTML in the email
+                HtmlUtils.htmlEscape(userName),
+                HtmlUtils.htmlEscape(application.getCompany()),
+                HtmlUtils.htmlEscape(application.getRole()),
                 application.getStatus(),
-                reminder.getMessage(),
+                HtmlUtils.htmlEscape(reminder.getMessage()),
                 reminder.getRemindAt().toString());
     }
 }

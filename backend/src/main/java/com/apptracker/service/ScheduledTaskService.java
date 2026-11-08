@@ -78,7 +78,7 @@ public class ScheduledTaskService {
                 // than 30 days
                 List<ApplicationEntity> applicationsToArchive = applicationRepo.findAll().stream()
                         .filter(app -> app.getUserId().equals(user.getId()))
-                        .filter(app -> "REJECTED".equals(app.getStatus()))
+                        .filter(app -> app.getStatus() == ApplicationEntity.Status.REJECTED)
                         .filter(app -> !app.isArchived())
                         .filter(app -> app.getUpdatedAt() != null && app.getUpdatedAt().isBefore(cutoffDate))
                         .toList();

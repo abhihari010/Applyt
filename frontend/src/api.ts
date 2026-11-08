@@ -52,7 +52,7 @@ export interface Application {
   company: string;
   role: string;
   location?: string;
-  status: "SAVED" | "APPLIED" | "OA" | "INTERVIEW" | "OFFER" | "REJECTED";
+  status: "SAVED" | "APPLIED" | "OA" | "INTERVIEW" | "OFFER" | "ACCEPTED" | "REJECTED";
   dateApplied?: string;
   jobUrl?: string;
   priority: "LOW" | "MEDIUM" | "HIGH";
