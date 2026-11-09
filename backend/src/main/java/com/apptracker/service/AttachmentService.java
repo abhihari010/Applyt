@@ -51,13 +51,15 @@ public class AttachmentService {
 
     @Transactional
     public Attachment confirmAttachment(UUID userId, UUID appId, ConfirmAttachmentRequest request) {
+        // Verify ownership
+        applicationService.getApplicationEntityById(userId, appId);
+
+        // The client sends this key back, so it must stay inside this user's application folder
         String key = request.getObjectKey();
         String prefix = String.format("users/%s/apps/%s/", userId, appId);
         if (key == null || !key.startsWith(prefix) || key.contains("../")) {
             throw new BadRequestException("Invalid object key");
         }
-        // Verify ownership
-        applicationService.getApplicationEntityById(userId, appId);
 
         Attachment attachment = new Attachment();
         attachment.setApplicationId(appId);
