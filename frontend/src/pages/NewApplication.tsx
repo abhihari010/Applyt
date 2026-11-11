@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient, { OpenJob } from "../api";
 import DatePicker from "react-datepicker";
+import { dayFromIso, dayToIso } from "../dates";
 import "react-datepicker/dist/react-datepicker.css";
 import ImportJobModal, {
   ImportedData,
@@ -258,11 +259,11 @@ export default function NewApplication() {
               Date Applied
             </label>
             <DatePicker
-              selected={form.dateApplied ? new Date(form.dateApplied) : null}
+              selected={form.dateApplied ? dayFromIso(form.dateApplied) : null}
               onChange={(date: Date | null) => {
                 setForm({
                   ...form,
-                  dateApplied: date ? date.toISOString() : undefined,
+                  dateApplied: date ? dayToIso(date) : undefined,
                 });
               }}
               dateFormat="MMM d, yyyy"

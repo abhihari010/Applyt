@@ -1,5 +1,5 @@
 import { MapPin, Calendar, Building2 } from "lucide-react";
-import { format } from "date-fns";
+import { formatDay } from "../dates";
 import StatusBadge from "./StatusBadge";
 import PriorityBadge from "./PriorityBadge";
 import { Application } from "src/api";
@@ -52,7 +52,7 @@ export default function ApplicationCard({
           <div className="flex items-center gap-1.5 text-sm text-neutral-600">
             <Calendar className="h-4 w-4 shrink-0 text-neutral-400" />
             <span>
-              {format(new Date(application.dateApplied), "MMM d, yyyy")}
+              {formatDay(application.dateApplied)}
             </span>
           </div>
         )}

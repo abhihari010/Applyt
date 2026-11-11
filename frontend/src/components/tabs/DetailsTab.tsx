@@ -1,5 +1,6 @@
 import { MapPin, Calendar, Link as LinkIcon } from "lucide-react";
 import { format } from "date-fns";
+import { formatDay } from "../../dates";
 
 interface DetailsTabProps {
   application: any;
@@ -96,7 +97,7 @@ export default function DetailsTab({
               <Calendar className="h-5 w-5 text-gray-400" />
               <span>
                 Applied on{" "}
-                {format(new Date(application.dateApplied), "MMM d, yyyy")}
+                {formatDay(application.dateApplied)}
               </span>
             </div>
           )}

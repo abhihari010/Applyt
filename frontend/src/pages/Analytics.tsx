@@ -30,6 +30,7 @@ import {
   Award,
 } from "lucide-react";
 import api, { Application } from "../api";
+import { dayFromIso } from "../dates";
 import { AppShell, EmptyState, PageHeader, PageLoader, StatTile } from "../components/AppShell";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -85,7 +86,7 @@ export default function Analytics() {
   const weeklyData = weeks.map((weekStart) => {
     const weekEnd = endOfWeek(weekStart);
     const count = apps.filter((app: Application) => {
-      const appDate = new Date(app.dateApplied || app.createdAt);
+      const appDate = app.dateApplied ? dayFromIso(app.dateApplied) : new Date(app.createdAt);
       return appDate >= weekStart && appDate <= weekEnd;
     }).length;
 
