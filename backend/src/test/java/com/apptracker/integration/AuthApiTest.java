@@ -180,7 +180,7 @@ class AuthApiTest extends IntegrationTestBase {
     }
 
     @Test
-    void expiredVerificationTokenIsRejected() throws Exception {
+    void expiredVerificationTokenIsRejectedAndRemoved() throws Exception {
         String email = uniqueEmail();
         register("New User", email, PASSWORD).andExpect(status().isOk());
         EmailVerificationToken token = expireVerificationToken(email);
@@ -190,6 +190,7 @@ class AuthApiTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.error").value("Verification token has expired"));
 
         assertThat(users.findByEmail(email).orElseThrow().isEmailVerified()).isFalse();
+        assertThat(verificationTokens.findByToken(token.getToken())).isNull();
     }
 
     @Test
@@ -350,5 +351,62 @@ class AuthApiTest extends IntegrationTestBase {
 
         mvc.perform(as(user, get("/api/auth/me")))
                 .andExpect(content().string(org.hamcrest.Matchers.not(containsString(user.getEmail()))));
+    }
+
+    @Test
+    void linkEmailedAfterLoginWithAnExpiredTokenWorks() throws Exception {
+        String email = uniqueEmail();
+        register("New User", email, PASSWORD).andExpect(status().isOk());
+        expireVerificationToken(email);
+        org.mockito.Mockito.clearInvocations(emailService);
+
+        login(email, PASSWORD).andExpect(status().isForbidden());
+
+        ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
+        verify(emailService).sendEmail(eq(email), eq("Verify Your Email"), body.capture());
+        java.util.regex.Matcher link = java.util.regex.Pattern.compile("verify-email\\?token=([\\w-]+)").matcher(body.getValue());
+        assertThat(link.find()).isTrue();
+
+        verifyEmail(link.group(1)).andExpect(status().isOk());
+    }
+
+    @Test
+    void passwordChangesEnforceTheSameStrengthRulesAsRegistration() throws Exception {
+        User user = verifiedUser();
+        changePassword(user, PASSWORD, "alllowercase1").andExpect(status().isBadRequest());
+
+        User oauthUser = verifiedUser();
+        oauthUser.setPasswordHash(null);
+        users.save(oauthUser);
+        mvc.perform(withJson(as(oauthUser, put("/api/auth/set-password")), Map.of("newPassword", "Password123")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void setPasswordIsRefusedWhenAPasswordAlreadyExists() throws Exception {
+        User user = verifiedUser();
+
+        mvc.perform(withJson(as(user, put("/api/auth/set-password")), Map.of("newPassword", "Nw8pLk3XyT")))
+                .andExpect(status().isBadRequest());
+
+        login(user.getEmail(), PASSWORD).andExpect(status().isOk());
+    }
+
+    @Test
+    void updateProfileRejectsHtmlInTheName() throws Exception {
+        User user = verifiedUser();
+        mvc.perform(withJson(as(user, put("/api/auth/change-profile")),
+                Map.of("name", "<img src=x onerror=alert(1)>", "email", user.getEmail())))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void verificationLinkUsesTheConfiguredFrontendUrl() throws Exception {
+        String email = uniqueEmail();
+        register("New User", email, PASSWORD).andExpect(status().isOk());
+
+        ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
+        verify(emailService).sendEmail(eq(email), eq("Verify Your Email"), body.capture());
+        assertThat(body.getValue()).contains("http://frontend.test/verify-email?token=");
     }
 }

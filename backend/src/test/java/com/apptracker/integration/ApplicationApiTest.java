@@ -510,4 +510,33 @@ class ApplicationApiTest extends IntegrationTestBase {
                 .andExpect(jsonPath("$.conversionRates.appliedToInterview").value(100.0))
                 .andExpect(jsonPath("$.appsPerWeek").isMap());
     }
+
+    @Test
+    void updateWithoutAStatusKeepsTheCurrentOne() throws Exception {
+        ApplicationEntity app = app("Acme", "Engineer", ApplicationEntity.Status.APPLIED);
+        mvc.perform(withJson(as(user, put(base(app))), Map.of("company", "Acme", "role", "Engineer")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("APPLIED"));
+    }
+
+    @Test
+    void statusUpdateRejectsUnknownValues() throws Exception {
+        ApplicationEntity app = app("Acme", "Engineer", ApplicationEntity.Status.APPLIED);
+        mvc.perform(withJson(as(user, patch(base(app) + "/status")), Map.of("status", "NOPE")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void listWithAnUnknownStatusFilterIsABadRequest() throws Exception {
+        list("?status=NOPE").andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void notesAndContactsAreValidated() throws Exception {
+        ApplicationEntity app = app("Acme", "Engineer", ApplicationEntity.Status.APPLIED);
+        mvc.perform(withJson(as(user, post(base(app) + "/notes")), Map.of("content", " ")))
+                .andExpect(status().isBadRequest());
+        mvc.perform(withJson(as(user, post(base(app) + "/contacts")), Map.of("name", "Riley", "email", "not-an-email")))
+                .andExpect(status().isBadRequest());
+    }
 }

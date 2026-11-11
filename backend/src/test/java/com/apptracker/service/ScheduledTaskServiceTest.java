@@ -184,4 +184,10 @@ class ScheduledTaskServiceTest {
                 monthName(now.getMonthValue() + 1) + " 1"));
         assertThat(jobs.get(0).getDatePosted().getYear()).isEqualTo(now.getYear() - 1);
     }
+
+    @Test
+    void keepsPostingsWhoseTextContainsCompanyOrRole() {
+        assertThat(parse(row("Ford Motor Company", "SWE Intern", "Detroit",
+                "<a href=\"https://ford.test\">Apply</a>", "Jan 5"))).hasSize(1);
+    }
 }

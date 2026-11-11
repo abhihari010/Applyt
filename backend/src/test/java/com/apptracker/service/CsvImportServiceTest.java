@@ -196,4 +196,19 @@ class CsvImportServiceTest {
         CsvImportResult result = importCsv("company,role\n");
         assertThat(result.getTotalProcessed()).isZero();
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"2024-03-15T10:30:00Z", "2024-03-15T10:30:00", "2024-03-15T12:30:00+02:00"})
+    void keepsTheTimeOfFullTimestamps(String timestamp) {
+        OffsetDateTime parsed = importedRow("company,role,date\nAcme,Engineer," + timestamp + "\n").getDateApplied();
+        assertThat(parsed).isAtSameInstantAs(OffsetDateTime.of(2024, 3, 15, 10, 30, 0, 0, ZoneOffset.UTC));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"javascript:alert(1)", "data:text/html,x", "acme.test/jobs"})
+    void rejectsRowsWithNonHttpJobUrls(String url) {
+        CsvImportResult result = importCsv("company,role,job_url\nAcme,Engineer," + url + "\n");
+        assertThat(result.getSuccessCount()).isZero();
+        assertThat(result.getErrors().get(0).getMessage()).contains("Job URL");
+    }
 }

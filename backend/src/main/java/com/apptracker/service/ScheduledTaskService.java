@@ -186,11 +186,13 @@ public class ScheduledTaskService {
             }
 
             if (line.startsWith("|") && !line.contains("---")) {
-                if (line.toLowerCase().contains("company") || line.toLowerCase().contains("role")) {
+                String[] cells = line.split("\\|");
+
+                // Skip the table header. Check its own cells, since postings can contain these words too.
+                if (cells.length > 2 && cells[1].trim().equalsIgnoreCase("company")
+                        && cells[2].trim().equalsIgnoreCase("role")) {
                     continue;
                 }
-
-                String[] cells = line.split("\\|");
 
                 if (cells.length >= 6) {
                     OpenJob app = new OpenJob();

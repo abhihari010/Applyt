@@ -115,4 +115,22 @@ class AnalyticsServiceTest {
 
         assertThat(total).isEqualTo(1);
     }
+
+    @Test
+    void rejectedApplicationsCountAsApplied() {
+        List<ApplicationEntity> all = apps(Status.REJECTED, 9);
+        all.addAll(apps(Status.OFFER, 1));
+        when(repository.findAll()).thenReturn(all);
+
+        assertThat(rates(service.getAnalytics(userId)).get("appliedToOffer")).isCloseTo(10.0, within(0.001));
+    }
+
+    @Test
+    void includesApplicationsFromTheCurrentWeek() {
+        when(repository.findAll()).thenReturn(List.of(app(userId, Status.APPLIED, OffsetDateTime.now())));
+
+        long total = weeks(service.getAnalytics(userId)).values().stream().mapToLong(Long::longValue).sum();
+
+        assertThat(total).isEqualTo(1);
+    }
 }

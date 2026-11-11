@@ -105,7 +105,7 @@ public class ApplicationController {
     public ResponseEntity<ApplicationDTO> updateStatus(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id,
-            @RequestBody UpdateStatusRequest request) {
+            @Valid @RequestBody UpdateStatusRequest request) {
 
         ApplicationDTO app = applicationService.updateStatus(userId, id, request.getStatus());
         return ResponseEntity.ok(app);
@@ -125,7 +125,7 @@ public class ApplicationController {
     public ResponseEntity<Note> createNote(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id,
-            @RequestBody CreateNoteRequest request) {
+            @Valid @RequestBody CreateNoteRequest request) {
 
         Note note = noteService.createNote(userId, id, request);
         return ResponseEntity.ok(note);
@@ -154,7 +154,7 @@ public class ApplicationController {
     public ResponseEntity<Contact> createContact(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id,
-            @RequestBody CreateContactRequest request) {
+            @Valid @RequestBody CreateContactRequest request) {
 
         Contact contact = contactService.createContact(userId, id, request);
         return ResponseEntity.ok(contact);

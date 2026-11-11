@@ -72,7 +72,7 @@ export default function ForgotPassword() {
                   <strong className="font-bold text-neutral-900">{email}</strong>.
                 </p>
                 <p className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
-                  The link expires in 24 hours. If it is not in your inbox,
+                  The link expires in 1 hour. If it is not in your inbox,
                   check spam or request another link.
                 </p>
                 <button

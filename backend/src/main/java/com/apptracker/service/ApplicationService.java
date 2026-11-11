@@ -1,6 +1,7 @@
 package com.apptracker.service;
 
 import com.apptracker.dto.*;
+import com.apptracker.exception.BadRequestException;
 import com.apptracker.exception.ResourceNotFoundException;
 import com.apptracker.exception.UnauthorizedException;
 import com.apptracker.model.ApplicationEntity;
@@ -61,6 +62,17 @@ public class ApplicationService {
     public Page<ApplicationDTO> getApplications(UUID userId, String status, String query,
             OffsetDateTime from, OffsetDateTime to,
             boolean includeArchived, Pageable pageable) {
+        // Parsed here, because inside the query below Spring would wrap a bad value in a different exception.
+        ApplicationEntity.Status statusFilter = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                statusFilter = ApplicationEntity.Status.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("Invalid status");
+            }
+        }
+        ApplicationEntity.Status finalStatusFilter = statusFilter;
+
         Specification<ApplicationEntity> spec = (root, criteriaQuery, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -69,8 +81,8 @@ public class ApplicationService {
                 predicates.add(cb.equal(root.get("archived"), false));
             }
 
-            if (status != null && !status.isEmpty()) {
-                predicates.add(cb.equal(root.get("status"), ApplicationEntity.Status.valueOf(status)));
+            if (finalStatusFilter != null) {
+                predicates.add(cb.equal(root.get("status"), finalStatusFilter));
             }
 
             if (query != null && !query.isEmpty()) {
@@ -119,7 +131,10 @@ public class ApplicationService {
         app.setLocation(request.getLocation());
         app.setJobUrl(request.getJobUrl());
         app.setDateApplied(request.getDateApplied());
-        app.setStatus(ApplicationEntity.Status.valueOf(request.getStatus()));
+
+        if (request.getStatus() != null) {
+            app.setStatus(ApplicationEntity.Status.valueOf(request.getStatus()));
+        }
 
         if (request.getPriority() != null) {
             app.setPriority(ApplicationEntity.Priority.valueOf(request.getPriority()));

@@ -14,9 +14,11 @@ import com.apptracker.security.JwtUtil;
 import com.apptracker.util.AppLogger;
 import com.apptracker.util.ValidationUtils;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -32,17 +34,20 @@ public class AuthService {
     private final R2StorageService r2StorageService;
     private final JwtUtil jwtUtil;
     private final VerifyEmailTokenRepository emailVerificationTokenRepository;
+    private final String frontendUrl;
     private final BCryptPasswordEncoder pwEncoder = new BCryptPasswordEncoder();
 
     public AuthService(UserRepository userRepo, AttachmentRepository attachmentRepo,
             EmailService emailService, R2StorageService r2StorageService,
-            JwtUtil jwtUtil, VerifyEmailTokenRepository emailVerificationTokenRepository) {
+            JwtUtil jwtUtil, VerifyEmailTokenRepository emailVerificationTokenRepository,
+            @Value("${app.frontend-url}") String frontendUrl) {
         this.userRepo = userRepo;
         this.attachmentRepo = attachmentRepo;
         this.emailService = emailService;
         this.r2StorageService = r2StorageService;
         this.jwtUtil = jwtUtil;
         this.emailVerificationTokenRepository = emailVerificationTokenRepository;
+        this.frontendUrl = frontendUrl;
     }
 
     /**
@@ -86,8 +91,10 @@ public class AuthService {
     }
 
     /**
-     * Authenticate user by email and password
+     * Authenticate user by email and password.
+     * The unverified-email exception must not roll back the replacement token whose link was just emailed.
      */
+    @Transactional(noRollbackFor = UnverifiedEmailException.class)
     public AuthResponse login(String email, String password) {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
@@ -129,6 +136,8 @@ public class AuthService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        ValidationUtils.validateName(name);
+
         // Check if email is being changed to one that already exists
         if (!user.getEmail().equals(email)) {
             if (userRepo.findByEmail(email).isPresent()) {
@@ -136,7 +145,7 @@ public class AuthService {
             }
         }
 
-        user.setName(name);
+        user.setName(ValidationUtils.sanitizeString(name));
         user.setEmail(email);
         user.setUpdatedAt(OffsetDateTime.now());
         User updated = userRepo.save(user);
@@ -155,9 +164,7 @@ public class AuthService {
             throw new IllegalArgumentException("Current password is incorrect");
         }
 
-        if (newPassword == null || newPassword.length() < 8) {
-            throw new IllegalArgumentException("Password must be at least 8 characters long");
-        }
+        ValidationUtils.validatePasswordStrength(newPassword);
 
         if (pwEncoder.matches(newPassword, user.getPasswordHash())) {
             throw new IllegalArgumentException("New password must be different from current password");
@@ -175,9 +182,12 @@ public class AuthService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (newPassword == null || newPassword.length() < 8) {
-            throw new IllegalArgumentException("Password must be at least 8 characters long");
+        // Replacing an existing password has to go through change-password, which checks the current one.
+        if (user.getPasswordHash() != null) {
+            throw new IllegalArgumentException("Password is already set");
         }
+
+        ValidationUtils.validatePasswordStrength(newPassword);
 
         user.setPasswordHash(pwEncoder.encode(newPassword));
         user.setUpdatedAt(OffsetDateTime.now());
@@ -233,8 +243,9 @@ public class AuthService {
     }
 
     /**
-     * Verify email using token
+     * Verify email using token. The exception for an expired token must not roll back deleting that token.
      */
+    @Transactional(noRollbackFor = IllegalArgumentException.class)
     public void verifyEmail(String token) {
         EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByToken(token);
         if (verificationToken == null) {
@@ -305,7 +316,7 @@ public class AuthService {
      * Helper method to send verification email
      */
     private void sendVerificationEmail(String email, String token, String name) {
-        String verificationUrl = System.getenv("FRONTEND_URL") + "/verify-email?token=" + token;
+        String verificationUrl = frontendUrl + "/verify-email?token=" + token;
 
         emailService.sendEmail(
                 email,
@@ -351,7 +362,7 @@ public class AuthService {
                                 </body>
                                 </html>
                                 """,
-                        name, verificationUrl, verificationUrl));
+                        HtmlUtils.htmlEscape(name), verificationUrl, verificationUrl));
 
     }
 

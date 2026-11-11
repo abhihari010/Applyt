@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -82,7 +83,11 @@ public class CsvImportService {
 
         // Optional fields
         request.setLocation(getField(record, "location", "city", "loc"));
-        request.setJobUrl(getField(record, "job_url", "url", "link", "job_link"));
+        String jobUrl = getField(record, "job_url", "url", "link", "job_link");
+        if (jobUrl != null && !jobUrl.trim().toLowerCase().matches("^https?://.*")) {
+            throw new IllegalArgumentException("Job URL must start with http:// or https://");
+        }
+        request.setJobUrl(jobUrl);
 
         // Date applied - try multiple formats
         String dateStr = getField(record, "date_applied", "applied_date", "date", "applied");
@@ -128,11 +133,19 @@ public class CsvImportService {
     }
 
     private OffsetDateTime parseDate(String dateStr) {
+        try {
+            return OffsetDateTime.parse(dateStr);
+        } catch (DateTimeParseException e) {
+            // No offset, or not a timestamp at all
+        }
+        try {
+            return LocalDateTime.parse(dateStr).atOffset(ZoneOffset.UTC);
+        } catch (DateTimeParseException e) {
+            // Date only
+        }
+
         DateTimeFormatter[] formatters = {
-                DateTimeFormatter.ISO_OFFSET_DATE_TIME,
-                DateTimeFormatter.ISO_LOCAL_DATE_TIME,
                 DateTimeFormatter.ISO_LOCAL_DATE,
-                DateTimeFormatter.ofPattern("yyyy-MM-dd"),
                 DateTimeFormatter.ofPattern("MM/dd/yyyy"),
                 DateTimeFormatter.ofPattern("dd/MM/yyyy"),
                 DateTimeFormatter.ofPattern("M/d/yyyy"),
@@ -141,12 +154,8 @@ public class CsvImportService {
 
         for (DateTimeFormatter formatter : formatters) {
             try {
-                if (formatter.toString().contains("DATE_TIME")) {
-                    return OffsetDateTime.parse(dateStr, formatter);
-                } else {
-                    LocalDate localDate = LocalDate.parse(dateStr, formatter);
-                    return localDate.atStartOfDay().atOffset(ZoneOffset.UTC);
-                }
+                LocalDate localDate = LocalDate.parse(dateStr, formatter);
+                return localDate.atStartOfDay().atOffset(ZoneOffset.UTC);
             } catch (DateTimeParseException e) {
                 // Try next formatter
             }
